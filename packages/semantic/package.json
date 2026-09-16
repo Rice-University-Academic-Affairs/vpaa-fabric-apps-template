@@ -1,0 +1,28 @@
+{
+	"name": "@vpaa/semantic",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		}
+	},
+	"scripts": {
+		"test": "vitest run",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@microsoft/fabric-app-data": "catalog:",
+		"@microsoft/fabric-app-data-embed-client": "catalog:",
+		"@microsoft/fabric-app-data-proxy": "catalog:",
+		"arquero": "catalog:"
+	},
+	"devDependencies": {
+		"@microsoft/fabric-app-data-cli": "catalog:",
+		"@microsoft/fabric-app-data-cli-proxy": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

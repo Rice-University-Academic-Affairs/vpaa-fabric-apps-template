@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "@vpaa/ui/theme.css";
+
+@source "../lib";
+@source "../../../../packages/ui/src/lib";

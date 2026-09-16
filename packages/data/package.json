@@ -1,0 +1,27 @@
+{
+	"name": "@vpaa/data",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		}
+	},
+	"scripts": {
+		"test": "vitest run",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@microsoft/rayfin-client": "catalog:",
+		"@microsoft/rayfin-core": "catalog:",
+		"@vpaa/types": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/better-sqlite3": "catalog:",
+		"better-sqlite3": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"lib": ["ES2022", "ESNext.Decorators"],
+		"module": "NodeNext",
+		"moduleResolution": "nodenext",
+		"strict": true,
+		"skipLibCheck": true,
+		"outDir": ".temp/compiled",
+		"rootDir": ".",
+		"declaration": true,
+		"composite": true,
+		"noEmit": false,
+		"verbatimModuleSyntax": true,
+		"isolatedModules": true,
+		"moduleDetection": "force",
+		"experimentalDecorators": false,
+		"emitDecoratorMetadata": false,
+		"useDefineForClassFields": true
+	},
+	"include": ["data/**/*.ts"],
+	"exclude": [".temp/**/*", "functions/**/*"]
+}

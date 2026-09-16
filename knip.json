@@ -1,0 +1,65 @@
+{
+	"$schema": "https://unpkg.com/knip@5/schema.json",
+	"exclude": ["exports", "types", "nsExports", "nsTypes", "enumMembers", "classMembers", "duplicates", "catalog"],
+	"ignoreUnresolved": ["^\\$app/", "^\\./\\$types$"],
+	"ignoreBinaries": ["depcruise", "rayfin", "fabric-app-data"],
+	"ignore": ["templates/**"],
+	"workspaces": {
+		".": {
+			"entry": ["scripts/*.mjs"],
+			"svelte": false,
+			"sveltekit": false
+		},
+		"apps/*": {
+			"entry": ["rayfin/data/**/*.ts", "scripts/*.ts", "scripts/*.mjs", "src/test/setup.ts", "vite.config.ts", "svelte.config.js"],
+			"ignoreDependencies": [
+				"@internationalized/date",
+				"@lucide/svelte",
+				"@microsoft/fabric-app-data",
+				"@microsoft/fabric-app-data-cli",
+				"@microsoft/fabric-app-data-cli-proxy",
+				"@microsoft/fabric-app-data-embed-client",
+				"@microsoft/fabric-app-data-proxy",
+				"@microsoft/rayfin-auth",
+				"@microsoft/rayfin-auth-provider-fabric",
+				"@microsoft/rayfin-cli",
+				"@microsoft/rayfin-client",
+				"@microsoft/rayfin-data",
+				"@microsoft/rayfin-lib",
+				"@testing-library/user-event",
+				"@types/better-sqlite3",
+				"@vpaa/types",
+				"@vpaa/ui",
+				"arquero",
+				"better-sqlite3",
+				"bits-ui",
+				"clsx",
+				"kysely",
+				"shadcn-svelte",
+				"sqlite-vec",
+				"tailwind-merge",
+				"tailwind-variants",
+				"tailwindcss",
+				"tw-animate-css"
+			]
+		},
+		"packages/ui": {
+			"entry": ["rayfin/data/**/*.ts", "scripts/*.ts"],
+			"ignore": ["src/routes/**"],
+			"ignoreDependencies": [
+				"@microsoft/rayfin-auth",
+				"@microsoft/rayfin-auth-provider-fabric",
+				"@microsoft/rayfin-client",
+				"@microsoft/rayfin-data",
+				"@microsoft/rayfin-lib",
+				"@vpaa/types"
+			]
+		},
+		"packages/semantic": {
+			"ignoreDependencies": [
+				"@microsoft/fabric-app-data-cli",
+				"@microsoft/fabric-app-data-cli-proxy"
+			]
+		}
+	}
+}

@@ -1,0 +1,25 @@
+{
+	"name": "@vpaa/config",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		},
+		"./vite": {
+			"types": "./src/vite.ts",
+			"default": "./src/vite.ts"
+		},
+		"./tsconfig.base.json": "./tsconfig.base.json"
+	},
+	"scripts": {
+		"check": "tsc --noEmit",
+		"test": "node --test --experimental-strip-types src/vite.test.ts"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"typescript": "catalog:"
+	}
+}
