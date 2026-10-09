@@ -8,7 +8,7 @@ import {
 	TEST_NON_ADMIN,
 	TEST_OWNER
 } from "./identities.js";
-import type { AdminContext } from "@vpaa/ui";
+import type { AdminContext } from "@vpaa/admin";
 import type { AdminIdentity, AdminMembershipRecord, AdminRecord } from "../types.js";
 
 export type TestAdminHarness = AdminContext & {

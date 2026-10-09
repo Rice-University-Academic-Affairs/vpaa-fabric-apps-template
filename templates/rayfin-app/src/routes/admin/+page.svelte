@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
-	import { getAdminContext } from "@vpaa/ui";
+	import { getAdminContext } from "@vpaa/admin";
 	import { listResourceEntries, resourcePluralLabel } from "$lib/admin/generated/resources.js";
-	import AdminShell from "@vpaa/ui/admin/components/AdminShell.svelte";
+	import AdminShell from "@vpaa/admin/admin/components/AdminShell.svelte";
 
 	getAdminContext();
 	const resources = $derived(

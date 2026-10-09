@@ -1,5 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
+import { rayfinLocalDev } from "@microsoft/rayfin-local-dev/vite";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { defineConfig } from "vite";
@@ -8,7 +9,7 @@ import { createUiWorkspaceAliases, workspaceFsAllow } from "@vpaa/config/vite";
 const fromDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [tailwindcss(), sveltekit(), rayfinLocalDev()],
 	resolve: {
 		alias: createUiWorkspaceAliases(fromDir)
 	},

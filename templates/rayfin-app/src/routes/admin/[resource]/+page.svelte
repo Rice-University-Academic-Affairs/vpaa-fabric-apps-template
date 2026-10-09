@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
-	import { getAdminContext } from "@vpaa/ui";
+	import { getAdminContext } from "@vpaa/admin";
 	import { getResourceBySlug, resourcePluralLabel } from "$lib/admin/generated/resources.js";
-	import AdminShell from "@vpaa/ui/admin/components/AdminShell.svelte";
-	import AdminErrorView from "@vpaa/ui/admin/components/AdminError.svelte";
-	import ResourceListPanel from "@vpaa/ui/admin/components/ResourceListPanel.svelte";
-	import { Button } from "@vpaa/ui/components/ui/button/index.js";
+	import AdminShell from "@vpaa/admin/admin/components/AdminShell.svelte";
+	import AdminErrorView from "@vpaa/admin/admin/components/AdminError.svelte";
+	import ResourceListPanel from "@vpaa/admin/admin/components/ResourceListPanel.svelte";
+	import { Button } from "@vpaa/admin/components/ui/button/index.js";
 
 	getAdminContext();
 	const slug = $derived(page.params.resource ?? "");

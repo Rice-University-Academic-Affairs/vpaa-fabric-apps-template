@@ -14,7 +14,9 @@ Apps can use both. Semantic-model queries only work inside the Fabric portal emb
 ## Two authentications
 
 - **Developer CLI:** `pnpm up-app <slug>` deploys. `pnpm exec rayfin login` (use `--encryption-fallback-enabled` when the OS keychain is unavailable) is only if that fails as logged-out. It is not needed to write `fabric.yaml`. It does not impersonate end users at runtime.
-- **Runtime:** DAX runs as the Fabric portal user. App users must have Fabric permission on the **semantic model item**, not only on the Fabric app.
+- **Runtime:** DAX runs as the Fabric portal user. App users must have Fabric permission on the **semantic model item**, not only on the Fabric app. Share that item; a 403 on `dataAccessRoles` is a permission miss, not an empty search.
+
+Optional Rayfin 1.36 path: declare a `fabric-semanticmodel` connector (`auth.type: delegated`, `operations: [{ name: executeQuery }]`) and query from a Function. Keep the embed proxy for in-iframe DAX. Variant measure columns need Rayfin/SDK 1.36.1+.
 
 ## Dev
 

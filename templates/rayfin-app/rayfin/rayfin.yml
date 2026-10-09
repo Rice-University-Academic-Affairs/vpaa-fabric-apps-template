@@ -6,12 +6,14 @@ services:
     enabled: true
     fabric:
       enabled: true
+      externalEntraExchange: true
     allowedRedirectUris:
     - http://localhost:5173
     - http://127.0.0.1:5173
   data:
     enabled: true
     dialect: mssql
+    allowIntrospection: false
   storage:
     enabled: false
   staticHosting:
@@ -19,5 +21,8 @@ services:
     folder: build
     buildCommand: npm run build:fabric
     indexDocument: index.html
+    assetAccess: protected
+    embedded:
+      only: false
   functions:
     enabled: false

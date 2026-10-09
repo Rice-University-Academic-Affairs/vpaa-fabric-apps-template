@@ -24,12 +24,15 @@
 				"@microsoft/rayfin-auth-provider-fabric",
 				"@microsoft/rayfin-cli",
 				"@microsoft/rayfin-client",
+				"@microsoft/rayfin-connectors",
 				"@microsoft/rayfin-data",
 				"@microsoft/rayfin-lib",
+				"@microsoft/rayfin-local-dev",
+				"@microsoft/fabric-user-data-functions",
 				"@testing-library/user-event",
 				"@types/better-sqlite3",
 				"@vpaa/types",
-				"@vpaa/ui",
+				"@vpaa/admin",
 				"arquero",
 				"better-sqlite3",
 				"bits-ui",
@@ -43,7 +46,7 @@
 				"tw-animate-css"
 			]
 		},
-		"packages/ui": {
+		"packages/admin": {
 			"entry": ["rayfin/data/**/*.ts", "scripts/*.ts"],
 			"ignore": ["src/routes/**"],
 			"ignoreDependencies": [
@@ -60,6 +63,10 @@
 				"@microsoft/fabric-app-data-cli",
 				"@microsoft/fabric-app-data-cli-proxy"
 			]
+		},
+		"apps/*/rayfin/functions": {
+			"entry": ["src/function_app.ts", "src/types.ts", "src/secrets.generated.ts"],
+			"ignoreDependencies": ["typescript"]
 		}
 	}
 }

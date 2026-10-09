@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PageContainer, PageHeader } from "@vpaa/ui";
+	import { PageContainer, PageHeader } from "@vpaa/admin";
 </script>
 
 <PageContainer data-app-ready>

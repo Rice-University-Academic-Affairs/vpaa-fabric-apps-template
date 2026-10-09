@@ -4,20 +4,21 @@
 	"packageManager": "pnpm@10.34.5",
 	"pnpm": {
 		"onlyBuiltDependencies": [
+			"better-sqlite3",
 			"esbuild",
 			"protobufjs"
 		]
 	},
 	"scripts": {
 		"dev": "node scripts/list-apps.mjs",
-		"dev:ui": "pnpm --filter @vpaa/ui dev",
+		"dev:admin": "pnpm --filter @vpaa/admin dev",
 		"build": "pnpm -r --if-present build",
 		"check": "pnpm -r --if-present check",
 		"check:deps": "depcruise apps packages --config .dependency-cruiser.cjs",
 		"knip": "knip --no-config-hints",
 		"test": "pnpm -r --if-present test && node --test scripts/create-app.test.mjs scripts/register-semantic-model.test.mjs scripts/up-app.test.mjs scripts/workspace-contract.test.mjs",
-		"test:smoke": "pnpm --filter @vpaa/ui test:smoke && pnpm --sequential --filter \"./apps/*\" test:smoke",
-		"test:e2e": "pnpm --filter @vpaa/ui test:e2e && pnpm --sequential --filter \"./apps/*\" test:e2e",
+		"test:smoke": "pnpm --filter @vpaa/admin test:smoke && pnpm --sequential --filter \"./apps/*\" test:smoke",
+		"test:e2e": "pnpm --filter @vpaa/admin test:e2e && pnpm --sequential --filter \"./apps/*\" test:e2e",
 		"new-app": "node scripts/create-app.mjs",
 		"register-semantic-model": "node scripts/register-semantic-model.mjs",
 		"up-app": "node scripts/up-app.mjs"

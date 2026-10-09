@@ -7,11 +7,18 @@ description: Register a Fabric or Power BI semantic model on a VPAA app. Use whe
 
 Do not copy a second Rayfin/Fabric auth stack. Runtime auth is `@vpaa/auth` (`loadAppAuth`). Queries go through `@vpaa/semantic`.
 
-Writing `fabric.yaml` only needs the semantic model portal URL. Do not run `az login`, `rayfin login`, `fabric-app-data init`, or `fabric-app-data add` for this. `pnpm exec rayfin login --encryption-fallback-enabled` is only if **deploy** (`pnpm up-app`) fails as logged-out. Runtime DAX runs as the **Fabric portal user**. App users need Fabric permission on the semantic model item, not only the Fabric app.
+Rayfin 1.36.2: https://rayfin.ai/docs/reference/changelog
+
+Writing `fabric.yaml` only needs the semantic model portal URL. Do not run `az login`, `rayfin login`, `fabric-app-data init`, or `fabric-app-data add` for this. `pnpm exec rayfin login --encryption-fallback-enabled` is only if **deploy** (`pnpm up-app`) fails as logged-out. Runtime DAX runs as the **Fabric portal user**. App users need Fabric permission on the semantic model item, not only the Fabric app. A 403 on `dataAccessRoles` means the user can open the app but cannot query the model.
+
+Two query paths:
+
+- Embed proxy (default here): `@vpaa/semantic` `SemanticModelMessageClient` + `EmbedFabricApiProxy` inside the Fabric iframe. Rayfin 1.36.1 decodes Variant measure columns; keep `@microsoft/fabric-app-data*` current.
+- Functions connector (optional): `connectors:` in `rayfin.yml` with `type: fabric-semanticmodel`, `version: "1"`, `auth.type: delegated`, and `operations: [{ name: executeQuery }]`. The BaaS runtime settings POST requires `operations` even when docs call it optional. Then `client.functions.<name>.invoke` or `ConnectorsRayfinClient`. Semantic connectors are delegated-only. Do not add new `kusto` connectors in 1.36.
 
 Do not use `pnpm exec fabric-app-data`. On this Windows/pnpm layout that CLI is a no-op.
 
-1. Confirm target `apps/<slug>`. If the app does not exist, use `vpaa-create-app` with `pnpm new-app <slug> --semantic --from-url "<url>"` (that writes `fabric.yaml` in the same step). If the user also gave a Fabric workspace name, that skill’s deploy step (`pnpm up-app <slug> --workspace "<name>"`, never `npx rayfin`) is still required after this yaml is written. Refuse to wire this into `@vpaa/ui` or package internals. If the app exists but was not scaffolded with `--semantic`, run that path’s equivalent (no SQL, `@vpaa/semantic` + fabric-app-data deps, generate hooked into `build:fabric`) before continuing.
+1. Confirm target `apps/<slug>`. If the app does not exist, use `vpaa-create-app` with `pnpm new-app <slug> --semantic --from-url "<url>"` (that writes `fabric.yaml` in the same step). If the user also gave a Fabric workspace name, that skill’s deploy step (`pnpm up-app <slug> --workspace "<name>"`, never `npx rayfin`) is still required after this yaml is written. Refuse to wire this into `@vpaa/admin` or package internals. If the app exists but was not scaffolded with `--semantic`, run that path’s equivalent (no SQL, `@vpaa/semantic` + fabric-app-data deps, generate hooked into `build:fabric`) before continuing.
 2. Ask for the Fabric portal URL of the semantic model if missing. Supported paths include `/groups/{workspaceId}/modeling/{itemId}`, `/groups/{workspaceId}/semanticmodels/{itemId}`, and OneLake `/details/{workspaceId}/dataset/{itemId}`. Then from the repo root:
 
 ```sh

@@ -4,22 +4,30 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const USAGE = 'Usage: pnpm up-app <slug> [--workspace "<name>"]';
+const USAGE =
+	'Usage: pnpm up-app <slug> [--workspace "<name>"] [--dry-run] [--status] [--item-name <name>] [--capacity-id <id>] [--exclude-services <name>]';
 const WORKSPACE_NAME_FILE = "workspace-name";
+const VALUE_FLAGS = new Set(["workspace", "item-name", "capacity-id", "exclude-services"]);
+const BOOL_FLAGS = new Set(["dry-run", "status"]);
 
 export function parseArgs(argv) {
 	const values = {};
+	const flags = new Set();
 	const positionals = [];
 	for (let i = 0; i < argv.length; i++) {
 		const arg = argv[i];
 		if (arg.startsWith("--")) {
 			const name = arg.slice(2);
-			if (name === "workspace") {
+			if (VALUE_FLAGS.has(name)) {
 				const value = argv[++i];
 				if (!value || value.startsWith("--")) {
 					throw new Error(USAGE);
 				}
-				values.workspace = value;
+				values[name] = value;
+				continue;
+			}
+			if (BOOL_FLAGS.has(name)) {
+				flags.add(name);
 				continue;
 			}
 			throw new Error(USAGE);
@@ -31,7 +39,12 @@ export function parseArgs(argv) {
 	}
 	return {
 		slug: normalizeSlug(positionals[0]),
-		workspace: values.workspace ?? null
+		workspace: values.workspace ?? null,
+		dryRun: flags.has("dry-run"),
+		status: flags.has("status"),
+		itemName: values["item-name"] ?? null,
+		capacityId: values["capacity-id"] ?? null,
+		excludeServices: values["exclude-services"] ?? null
 	};
 }
 
@@ -86,8 +99,18 @@ export async function writeWorkspaceName(appDir, workspace) {
 	await writeFile(workspaceNamePath(appDir), `${workspace}\n`, "utf8");
 }
 
-export function rayfinUpArgs(workspace) {
-	return ["exec", "rayfin", "up", "--workspace", workspace, "--yes", "--encryption-fallback-enabled"];
+export function rayfinUpArgs(workspace, extras = {}) {
+	const args = ["exec", "rayfin", "up"];
+	if (extras.status) {
+		args.push("status", "--workspace", workspace, "--encryption-fallback-enabled");
+		return args;
+	}
+	args.push("--workspace", workspace, "--yes", "--encryption-fallback-enabled");
+	if (extras.dryRun) args.push("--dry-run");
+	if (extras.itemName) args.push("--item-name", extras.itemName);
+	if (extras.capacityId) args.push("--capacity-id", extras.capacityId);
+	if (extras.excludeServices) args.push("--exclude-services", extras.excludeServices);
+	return args;
 }
 
 function run(command, args, cwd) {
@@ -114,16 +137,31 @@ export async function upApp(options) {
 	if (!workspace) {
 		throw new Error(`First deploy of ${slug} needs --workspace "<Fabric workspace name>"`);
 	}
-	const args = rayfinUpArgs(workspace);
+	const extras = {
+		dryRun: Boolean(options.dryRun),
+		status: Boolean(options.status),
+		itemName: options.itemName ?? null,
+		capacityId: options.capacityId ?? null,
+		excludeServices: options.excludeServices ?? null
+	};
+	const args = rayfinUpArgs(workspace, extras);
 	await exec("pnpm", args, appDir);
-	await writeWorkspaceName(appDir, workspace);
+	if (!extras.dryRun && !extras.status) {
+		await writeWorkspaceName(appDir, workspace);
+	}
 	return { slug, appDir, workspace, args };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
 if (isMain) {
-	const { slug, workspace } = parseArgs(process.argv.slice(2));
-	const result = await upApp({ slug, workspace });
-	console.log(`Deployed apps/${result.slug} to ${result.workspace}`);
+	const parsed = parseArgs(process.argv.slice(2));
+	const result = await upApp(parsed);
+	if (parsed.status) {
+		console.log(`Status for apps/${result.slug} in ${result.workspace}`);
+	} else if (parsed.dryRun) {
+		console.log(`Dry-run for apps/${result.slug} in ${result.workspace}`);
+	} else {
+		console.log(`Deployed apps/${result.slug} to ${result.workspace}`);
+	}
 }

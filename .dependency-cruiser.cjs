@@ -13,48 +13,48 @@ module.exports = {
 			comment: "@vpaa/types must not import other workspace packages.",
 			severity: "error",
 			from: { path: "^packages/types/" },
-			to: { path: "^packages/(data|auth|ui|config|semantic)/" }
+			to: { path: "^packages/(data|auth|admin|config|semantic)/" }
 		},
 		{
 			name: "config-is-leaf",
 			comment: "@vpaa/config must not import other workspace packages.",
 			severity: "error",
 			from: { path: "^packages/config/" },
-			to: { path: "^packages/(types|data|auth|ui|semantic)/" }
+			to: { path: "^packages/(types|data|auth|admin|semantic)/" }
 		},
 		{
 			name: "data-dag",
 			comment: "@vpaa/data may only import @vpaa/types.",
 			severity: "error",
 			from: { path: "^packages/data/" },
-			to: { path: "^packages/(auth|ui|config|semantic)/" }
+			to: { path: "^packages/(auth|admin|config|semantic)/" }
 		},
 		{
 			name: "auth-dag",
 			comment: "@vpaa/auth may import @vpaa/data and @vpaa/types only.",
 			severity: "error",
 			from: { path: "^packages/auth/" },
-			to: { path: "^packages/(ui|config|semantic)/" }
+			to: { path: "^packages/(admin|config|semantic)/" }
 		},
 		{
 			name: "semantic-is-leaf",
 			comment: "@vpaa/semantic must not import other workspace packages.",
 			severity: "error",
 			from: { path: "^packages/semantic/" },
-			to: { path: "^packages/(types|data|auth|ui|config)/" }
+			to: { path: "^packages/(types|data|auth|admin|config)/" }
 		},
 		{
-			name: "ui-not-to-fame",
-			comment: "@vpaa/ui must not import apps.",
+			name: "admin-not-to-apps",
+			comment: "@vpaa/admin must not import apps.",
 			severity: "error",
-			from: { path: "^packages/ui/" },
+			from: { path: "^packages/admin/" },
 			to: { path: "^apps/" }
 		},
 		{
-			name: "ui-not-to-semantic",
-			comment: "@vpaa/ui may import types, data, and auth only.",
+			name: "admin-not-to-semantic",
+			comment: "@vpaa/admin may import types, data, and auth only.",
 			severity: "error",
-			from: { path: "^packages/ui/" },
+			from: { path: "^packages/admin/" },
 			to: { path: "^packages/semantic/" }
 		},
 		{
@@ -105,11 +105,11 @@ module.exports = {
 			}
 		},
 		{
-			name: "no-relative-across-ui",
+			name: "no-relative-across-admin",
 			severity: "error",
-			from: { path: "^packages/ui/" },
+			from: { path: "^packages/admin/" },
 			to: {
-				path: "^(packages/(?!ui/)|apps/)",
+				path: "^(packages/(?!admin/)|apps/)",
 				dependencyTypes: ["local"]
 			}
 		},

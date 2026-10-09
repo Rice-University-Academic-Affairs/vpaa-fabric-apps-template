@@ -6,9 +6,9 @@ import { createSvelteKitUiAliases, createUiWorkspaceAliases, workspaceFsAllow } 
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const fromDir = path.join(repoRoot, "apps", "example-app");
-const uiLib = path.join(repoRoot, "packages", "ui", "src", "lib");
+const uiLib = path.join(repoRoot, "packages", "admin", "src", "lib");
 
-test("createUiWorkspaceAliases resolves from an app root to packages/ui", () => {
+test("createUiWorkspaceAliases resolves from an app root to packages/admin", () => {
 	const aliases = createUiWorkspaceAliases(fromDir);
 	const components = aliases.find((alias) => alias.find === "$lib/components");
 	assert.ok(components);

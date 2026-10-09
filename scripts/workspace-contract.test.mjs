@@ -28,7 +28,7 @@ const appDirs = readdirSync(path.join(repoRoot, "apps"), { withFileTypes: true }
 
 const packageDirs = [
 	...appDirs.map((dir) => [dir, { test: true, smoke: true, e2e: true }]),
-	["packages/ui", { test: true, smoke: true, e2e: true }],
+	["packages/admin", { test: true, smoke: true, e2e: true }],
 	["packages/data", { test: true, smoke: false, e2e: false }],
 	["packages/auth", { test: true, smoke: false, e2e: false }],
 	["packages/semantic", { test: true, smoke: false, e2e: false }],
@@ -37,15 +37,30 @@ const packageDirs = [
 	["templates/rayfin-app", { test: true, smoke: true, e2e: true }]
 ];
 
+function functionsManifests() {
+	const manifests = ["templates/rayfin-app/rayfin/functions/package.json"];
+	for (const dir of appDirs) {
+		const relative = `${dir}/rayfin/functions/package.json`;
+		try {
+			readFileSync(path.join(repoRoot, relative), "utf8");
+			manifests.push(relative);
+		} catch {
+			continue;
+		}
+	}
+	return manifests;
+}
+
 const packageManifests = [
 	...appDirs.map((dir) => `${dir}/package.json`),
-	"packages/ui/package.json",
+	"packages/admin/package.json",
 	"packages/data/package.json",
 	"packages/auth/package.json",
 	"packages/semantic/package.json",
 	"packages/types/package.json",
 	"packages/config/package.json",
-	"templates/rayfin-app/package.json"
+	"templates/rayfin-app/package.json",
+	...functionsManifests()
 ];
 
 async function readJson(relative) {
@@ -86,11 +101,11 @@ test("root scripts keep the unit/smoke/e2e/check contract", async () => {
 	assert.equal(pkg.scripts.test, "pnpm -r --if-present test && node --test scripts/create-app.test.mjs scripts/register-semantic-model.test.mjs scripts/up-app.test.mjs scripts/workspace-contract.test.mjs");
 	assert.equal(
 		pkg.scripts["test:smoke"],
-		"pnpm --filter @vpaa/ui test:smoke && pnpm --sequential --filter \"./apps/*\" test:smoke"
+		"pnpm --filter @vpaa/admin test:smoke && pnpm --sequential --filter \"./apps/*\" test:smoke"
 	);
 	assert.equal(
 		pkg.scripts["test:e2e"],
-		"pnpm --filter @vpaa/ui test:e2e && pnpm --sequential --filter \"./apps/*\" test:e2e"
+		"pnpm --filter @vpaa/admin test:e2e && pnpm --sequential --filter \"./apps/*\" test:e2e"
 	);
 	assert.equal(pkg.scripts.check, "pnpm -r --if-present check");
 	assert.match(pkg.scripts["check:deps"], /depcruise/);
@@ -175,7 +190,7 @@ test("workspace packages depend on each other with workspace:*", async () => {
 test("Playwright smoke configs start one Vite server", async () => {
 	const files = [
 		...appDirs.map((dir) => `${dir}/playwright.smoke.config.ts`),
-		"packages/ui/playwright.smoke.config.ts",
+		"packages/admin/playwright.smoke.config.ts",
 		"templates/rayfin-app/playwright.smoke.config.ts"
 	];
 	for (const file of files) {
@@ -196,7 +211,7 @@ test("AGENTS.md files share the script-contract headings", async () => {
 	const files = [
 		"AGENTS.md",
 		...appDirs.map((dir) => `${dir}/AGENTS.md`),
-		"packages/ui/AGENTS.md",
+		"packages/admin/AGENTS.md",
 		"packages/data/AGENTS.md",
 		"packages/auth/AGENTS.md",
 		"packages/semantic/AGENTS.md",
@@ -216,6 +231,20 @@ test("dependency-cruiser keeps the extract DAG rules", async () => {
 	const source = await readText(".dependency-cruiser.cjs");
 	for (const name of depcruiseRules) {
 		assert.match(source, new RegExp(`name: "${name}"`));
+	}
+});
+
+test("rayfin.yml declares 1.36 hosting and auth keys", async () => {
+	const files = [
+		...appDirs.map((dir) => `${dir}/rayfin/rayfin.yml`),
+		"templates/rayfin-app/rayfin/rayfin.yml"
+	];
+	for (const file of files) {
+		const yml = await readText(file);
+		assert.match(yml, /assetAccess:\s*protected/, file);
+		assert.match(yml, /externalEntraExchange:\s*true/, file);
+		assert.doesNotMatch(yml, /anonymousAccess/, file);
+		assert.doesNotMatch(yml, /services\.connectors\.enabled|connectors:\s*\r?\n\s+enabled:/, file);
 	}
 });
 
@@ -263,7 +292,7 @@ function namedImportsFrom(source, names) {
 	return found;
 }
 
-test("apps and templates share @vpaa/ui admin context with ResourceListPanel", () => {
+test("apps and templates share @vpaa/admin admin context with ResourceListPanel", () => {
 	const files = [];
 	for (const root of appAndTemplateRoots) {
 		walkSourceFiles(path.join(repoRoot, root), files);
@@ -279,34 +308,34 @@ test("apps and templates share @vpaa/ui admin context with ResourceListPanel", (
 			assert.doesNotMatch(
 				source,
 				/\bcreateContext\s*[<(]/,
-				`${rel} must not call Svelte createContext; admin context lives in @vpaa/ui`
+				`${rel} must not call Svelte createContext; admin context lives in @vpaa/admin`
 			);
 		}
 
 		for (const { name, from } of namedImportsFrom(source, adminContextFns)) {
 			assert.equal(
 				from,
-				"@vpaa/ui",
-				`${rel} imports ${name} from ${from}; use @vpaa/ui so ResourceListPanel can read the same context`
+				"@vpaa/admin",
+				`${rel} imports ${name} from ${from}; use @vpaa/admin so ResourceListPanel can read the same context`
 			);
 		}
 
 		const panelFromUi = namedImportsFrom(source, adminPanelNames).some((row) =>
-			row.from.startsWith("@vpaa/ui")
+			row.from.startsWith("@vpaa/admin")
 		);
 		if (panelFromUi) {
 			const gets = namedImportsFrom(source, ["getAdminContext"]);
 			assert.ok(
-				gets.some((row) => row.from === "@vpaa/ui"),
-				`${rel} imports an @vpaa/ui admin panel and must import getAdminContext from @vpaa/ui`
+				gets.some((row) => row.from === "@vpaa/admin"),
+				`${rel} imports an @vpaa/admin admin panel and must import getAdminContext from @vpaa/admin`
 			);
 		}
 
 		if (rel.replaceAll("\\", "/").endsWith("src/routes/admin/+layout.svelte")) {
 			const sets = namedImportsFrom(source, ["setAdminContext"]);
 			assert.ok(
-				sets.some((row) => row.from === "@vpaa/ui"),
-				`${rel} must setAdminContext from @vpaa/ui`
+				sets.some((row) => row.from === "@vpaa/admin"),
+				`${rel} must setAdminContext from @vpaa/admin`
 			);
 			layoutsByTree.set(rel, source);
 		}

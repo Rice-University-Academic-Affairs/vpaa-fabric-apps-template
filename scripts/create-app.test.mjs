@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+	applyBlankScaffold,
+	applyFunctionsScaffold,
 	applySemanticScaffold,
 	assertSlug,
 	copyTemplate,
@@ -15,7 +17,17 @@ import {
 import { writeFabricYaml, parseFabricPortalUrl } from "./register-semantic-model.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const requiredScripts = ["dev", "check", "test", "test:smoke", "test:e2e", "admin:generate", "build:fabric"];
+const requiredScripts = [
+	"dev",
+	"dev:frontend",
+	"dev:rayfin",
+	"check",
+	"test",
+	"test:smoke",
+	"test:e2e",
+	"admin:generate",
+	"build:fabric"
+];
 const agentsHeadings = ["## Dev", "## Test (unit)", "## Smoke", "## E2E", "## Check", "## Generate"];
 const semanticQueryDocs = [
 	path.join(repoRoot, ".cursor", "skills", "vpaa-create-app", "SKILL.md"),
@@ -47,6 +59,7 @@ async function walkFiles(dir) {
 
 test("assertSlug rejects reserved and invalid names", () => {
 	assert.throws(() => assertSlug("ui"), /reserved/);
+	assert.throws(() => assertSlug("admin"), /reserved/);
 	assert.throws(() => assertSlug("data"), /reserved/);
 	assert.throws(() => assertSlug("auth"), /reserved/);
 	assert.throws(() => assertSlug("types"), /reserved/);
@@ -62,6 +75,8 @@ test("parseArgs reads slug and --fabric", () => {
 		slug: "faculty-activity",
 		fabric: false,
 		semantic: false,
+		functions: false,
+		blank: false,
 		fromUrl: null,
 		alias: "default"
 	});
@@ -69,6 +84,8 @@ test("parseArgs reads slug and --fabric", () => {
 		slug: "faculty-activity",
 		fabric: true,
 		semantic: false,
+		functions: false,
+		blank: false,
 		fromUrl: null,
 		alias: "default"
 	});
@@ -76,6 +93,8 @@ test("parseArgs reads slug and --fabric", () => {
 		slug: "faculty-activity",
 		fabric: true,
 		semantic: false,
+		functions: false,
+		blank: false,
 		fromUrl: null,
 		alias: "default"
 	});
@@ -86,6 +105,8 @@ test("parseArgs reads --semantic", () => {
 		slug: "faculty-activity",
 		fabric: false,
 		semantic: true,
+		functions: false,
+		blank: false,
 		fromUrl: null,
 		alias: "default"
 	});
@@ -93,6 +114,17 @@ test("parseArgs reads --semantic", () => {
 		slug: "faculty-activity",
 		fabric: false,
 		semantic: true,
+		functions: false,
+		blank: false,
+		fromUrl: null,
+		alias: "default"
+	});
+	assert.deepEqual(parseArgs(["faculty-activity", "--functions"]), {
+		slug: "faculty-activity",
+		fabric: false,
+		semantic: false,
+		functions: true,
+		blank: false,
 		fromUrl: null,
 		alias: "default"
 	});
@@ -105,6 +137,8 @@ test("parseArgs reads --from-url and implies --semantic", () => {
 		slug: "faculty-activity",
 		fabric: false,
 		semantic: true,
+		functions: false,
+		blank: false,
 		fromUrl: url,
 		alias: "default"
 	});
@@ -112,6 +146,8 @@ test("parseArgs reads --from-url and implies --semantic", () => {
 		slug: "faculty-activity",
 		fabric: false,
 		semantic: true,
+		functions: false,
+		blank: false,
 		fromUrl: url,
 		alias: "sales"
 	});
@@ -149,6 +185,9 @@ test("copyTemplate substitutes tokens without writing into apps/", async () => {
 		assert.match(yml, /buildCommand: npm run build:fabric/);
 		assert.match(yml, /id: faculty-activity/);
 		assert.match(yml, /dialect:\s*mssql/);
+		assert.match(yml, /assetAccess:\s*protected/);
+		assert.match(yml, /externalEntraExchange:\s*true/);
+		assert.match(yml, /functions:\s*\r?\n\s+enabled:\s*false/);
 		assert.doesNotMatch(yml, /tangy-coast/);
 		const smokeSpec = await readFile(path.join(dest, "e2e", "smoke.spec.ts"), "utf8");
 		assert.match(smokeSpec, /goto\("\/admin"\)/);
@@ -171,8 +210,60 @@ test("copyTemplate substitutes tokens without writing into apps/", async () => {
 			assert.doesNotMatch(text, leftover, file);
 		}
 		const adminLayout = await readFile(path.join(dest, "src", "routes", "admin", "+layout.svelte"), "utf8");
-		assert.match(adminLayout, /import\s*\{[^}]*setAdminContext[^}]*\}\s*from\s*["']@vpaa\/ui["']/);
+		assert.match(adminLayout, /import\s*\{[^}]*setAdminContext[^}]*\}\s*from\s*["']@vpaa\/admin["']/);
 		assert.doesNotMatch(adminLayout, /\bcreateContext\b/);
+		const chrome = await readFile(path.join(dest, "src", "lib", "chrome.ts"), "utf8");
+		assert.match(chrome, /productShell = true/);
+		const home = await readFile(path.join(dest, "src", "routes", "+page.svelte"), "utf8");
+		assert.match(home, /PageHeader/);
+	} finally {
+		await rm(tmp, { recursive: true, force: true });
+	}
+});
+
+test("parseArgs reads --blank", () => {
+	assert.deepEqual(parseArgs(["faculty-activity", "--blank"]), {
+		slug: "faculty-activity",
+		fabric: false,
+		semantic: false,
+		functions: false,
+		blank: true,
+		fromUrl: null,
+		alias: "default"
+	});
+});
+
+test("applyBlankScaffold drops the product shell and home chrome", async () => {
+	const tmp = await mkdtemp(path.join(os.tmpdir(), "vpaa-new-app-"));
+	try {
+		const dest = path.join(tmp, "app");
+		await copyTemplate(dest, substitutions("faculty-activity"));
+		await applyBlankScaffold(dest);
+		const chrome = await readFile(path.join(dest, "src", "lib", "chrome.ts"), "utf8");
+		assert.match(chrome, /productShell = false/);
+		const home = await readFile(path.join(dest, "src", "routes", "+page.svelte"), "utf8");
+		assert.doesNotMatch(home, /PageHeader/);
+		assert.match(home, /data-app-ready/);
+		const smoke = await readFile(path.join(dest, "e2e", "smoke.spec.ts"), "utf8");
+		assert.match(smoke, /loads admin/);
+		assert.doesNotMatch(smoke, /displayName/);
+	} finally {
+		await rm(tmp, { recursive: true, force: true });
+	}
+});
+
+test("applyFunctionsScaffold enables application-auth functions", async () => {
+	const tmp = await mkdtemp(path.join(os.tmpdir(), "vpaa-new-app-"));
+	try {
+		const dest = path.join(tmp, "app");
+		await copyTemplate(dest, substitutions("faculty-activity"));
+		await applyFunctionsScaffold(dest);
+		const yml = await readFile(path.join(dest, "rayfin", "rayfin.yml"), "utf8");
+		assert.match(yml, /functions:\s*\r?\n\s+enabled:\s*true/);
+		assert.match(yml, /auth:\s*\r?\n\s+type:\s*application/);
+		assert.match(yml, /path:\s*rayfin\/functions/);
+		const pkg = JSON.parse(await readFile(path.join(dest, "package.json"), "utf8"));
+		assert.equal(pkg.devDependencies["@microsoft/rayfin-local-dev"], "catalog:");
 	} finally {
 		await rm(tmp, { recursive: true, force: true });
 	}

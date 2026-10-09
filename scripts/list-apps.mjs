@@ -20,5 +20,5 @@ if (apps.length === 0) {
 for (const app of apps) {
 	console.error(`  pnpm --filter ${app.name} dev`);
 }
-console.error("  pnpm --filter @vpaa/ui dev");
+console.error("  pnpm --filter @vpaa/admin dev");
 process.exit(1);

@@ -1,6 +1,6 @@
 import LayoutDashboard from "@lucide/svelte/icons/layout-dashboard";
 import { buildPrimaryNavigation as buildNav } from "@vpaa/auth";
-import type { AppNavGroup } from "@vpaa/ui/types/navigation.js";
+import type { AppNavGroup } from "@vpaa/admin/types/navigation.js";
 
 export function buildPrimaryNavigation(options: { isAdmin: boolean }): AppNavGroup[] {
 	const items: AppNavGroup["items"] = [

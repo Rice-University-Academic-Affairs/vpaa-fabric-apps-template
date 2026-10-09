@@ -23,4 +23,5 @@ coverage/
 
 rayfin/.temp/
 rayfin/.deployments.json
+**/rayfin/functions/local.settings.json
 **/src/fabric.generated.ts

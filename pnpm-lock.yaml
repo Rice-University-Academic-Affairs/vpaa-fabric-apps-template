@@ -25,23 +25,23 @@ catalogs:
       specifier: 1.0.0
       version: 1.0.0
     '@microsoft/rayfin-auth':
-      specifier: ^1.34.0
-      version: 1.34.0
+      specifier: 1.36.2
+      version: 1.36.2
     '@microsoft/rayfin-auth-provider-fabric':
-      specifier: ^1.34.0
-      version: 1.34.0
+      specifier: 1.36.2
+      version: 1.36.2
     '@microsoft/rayfin-client':
-      specifier: ^1.34.0
-      version: 1.34.0
+      specifier: 1.36.2
+      version: 1.36.2
     '@microsoft/rayfin-core':
-      specifier: ^1.34.0
-      version: 1.34.0
+      specifier: 1.36.2
+      version: 1.36.2
     '@microsoft/rayfin-data':
-      specifier: ^1.34.0
-      version: 1.34.0
+      specifier: 1.36.2
+      version: 1.36.2
     '@microsoft/rayfin-lib':
-      specifier: ^1.34.0
-      version: 1.34.0
+      specifier: 1.36.2
+      version: 1.36.2
     '@playwright/test':
       specifier: ^1.62.1
       version: 1.62.1
@@ -127,13 +127,13 @@ importers:
     dependencies:
       '@microsoft/rayfin-auth':
         specifier: 'catalog:'
-        version: 1.34.0
+        version: 1.36.2
       '@microsoft/rayfin-auth-provider-fabric':
         specifier: 'catalog:'
-        version: 1.34.0
+        version: 1.36.2
       '@microsoft/rayfin-client':
         specifier: 'catalog:'
-        version: 1.34.0(typescript@6.0.3)
+        version: 1.36.2(typescript@6.0.3)
       '@vpaa/data':
         specifier: workspace:*
         version: link:../data
@@ -161,10 +161,10 @@ importers:
     dependencies:
       '@microsoft/rayfin-client':
         specifier: 'catalog:'
-        version: 1.34.0(typescript@6.0.3)
+        version: 1.36.2(typescript@6.0.3)
       '@microsoft/rayfin-core':
         specifier: 'catalog:'
-        version: 1.34.0(typescript@6.0.3)
+        version: 1.36.2(typescript@6.0.3)
       '@vpaa/types':
         specifier: workspace:*
         version: link:../types
@@ -216,29 +216,29 @@ importers:
         specifier: 'catalog:'
         version: 6.0.3
 
-  packages/ui:
+  packages/admin:
     dependencies:
       '@internationalized/date':
         specifier: ^3.12.2
         version: 3.12.4
       '@microsoft/rayfin-auth':
         specifier: 'catalog:'
-        version: 1.34.0
+        version: 1.36.2
       '@microsoft/rayfin-auth-provider-fabric':
         specifier: 'catalog:'
-        version: 1.34.0
+        version: 1.36.2
       '@microsoft/rayfin-client':
         specifier: 'catalog:'
-        version: 1.34.0(typescript@6.0.3)
+        version: 1.36.2(typescript@6.0.3)
       '@microsoft/rayfin-core':
         specifier: 'catalog:'
-        version: 1.34.0(typescript@6.0.3)
+        version: 1.36.2(typescript@6.0.3)
       '@microsoft/rayfin-data':
         specifier: 'catalog:'
-        version: 1.34.0(typescript@6.0.3)
+        version: 1.36.2(typescript@6.0.3)
       '@microsoft/rayfin-lib':
         specifier: 'catalog:'
-        version: 1.34.0
+        version: 1.36.2
       '@tanstack/ai':
         specifier: ^0.43.0
         version: 0.43.1(@opentelemetry/api@1.9.1)(zod@4.3.6)
@@ -641,6 +641,10 @@ packages:
   '@internationalized/date@3.12.4':
     resolution: {integrity: sha512-M1dEn4c1U1HsSlaVR8upZtSqvXrTkHDfv18H01uCSJyjVLDxnBR38v/fMxecmlwXKR4i9HeZcmgQAPE6A+aGJQ==}
 
+  '@isaacs/fs-minipass@4.0.1':
+    resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
+    engines: {node: '>=18.0.0'}
+
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
 
@@ -678,34 +682,37 @@ packages:
   '@microsoft/fabric-app-data@1.0.0':
     resolution: {integrity: sha512-yyne/2Z9oIw5HXOAk3mD7s6655DzRYHjOqGvTdi2VCcRtmCN3dWGFdUauIvnRRtYSGtToNkW2PffHMq+p5mlYQ==}
 
-  '@microsoft/fabric-embedded-host@1.34.0':
-    resolution: {integrity: sha512-iZseme9sVqCr8iPOsIRYazAI5AsJlyp201wtovn/DwLtBcAwZ2sO0WhphyCr5J5nVHhMgr4CS7lBB/12CyzatA==}
+  '@microsoft/fabric-embedded-host@1.36.2':
+    resolution: {integrity: sha512-vnpaAcv9Mht+XwToEcJhR/9qYdGumkiB+3Ptq0ZvHBCbPC2gUM2jNcIQJn/SdMZj7IiCuZYt97Dn10lLuXiz5w==}
 
-  '@microsoft/rayfin-auth-provider-fabric@1.34.0':
-    resolution: {integrity: sha512-sWu6TkJbif6Phl//72vAbt6uoWcFxULlHZdpphe1amKCtCysD6PARHR5f9pshD3Md8zxOLmY8xswvCcNh3+4VQ==}
+  '@microsoft/rayfin-auth-provider-fabric@1.36.2':
+    resolution: {integrity: sha512-Ll6zFVYuKGfwk28+Xg+BFejmbkihsITFizZXUI4lqMh5sRToNHUdaPPZPVrhoTUcAo2377Gy0CYz6CX4ymLRtQ==}
 
-  '@microsoft/rayfin-auth@1.34.0':
-    resolution: {integrity: sha512-x/PjjPtYCWC26zULl/k/ygIHeF692iPWhprPorroSrbkMRwfV6aScHJGKV/xrtXBYjFaKO1HLtcYOQOIXy/QiQ==}
+  '@microsoft/rayfin-auth@1.36.2':
+    resolution: {integrity: sha512-LtKZklYptMfKzx29l3hdGorvbU4UbCsj1mLK52YRSVwvBWhcopgCzE/magdnI5TsqJGxc2WlKFS6Ddh0Hudjxw==}
 
-  '@microsoft/rayfin-client@1.34.0':
-    resolution: {integrity: sha512-QTHhDLrLXDNmfm+s25KIU+xyztDmTROYirU+ceYsDXL78Iy34Tg+sMaXmbQPGlBuIC4yJMBwFWNtnl7CwsAh8w==}
+  '@microsoft/rayfin-client@1.36.2':
+    resolution: {integrity: sha512-/Z9yD8qvH4m4Hp70Is+EZy+HYdIfNOwl50TWuR8oHMrJSfR8Q7v62f80207dp5leiKGlYNjBLCwFBq14/AowDA==}
 
-  '@microsoft/rayfin-connectors@1.34.0':
-    resolution: {integrity: sha512-fCo/bg9lwzHsWYaMZP9Ed0DUqubP4REIEUcSILk/owvv9tWroE7aTHqwm3jWBtJ53XG+ywgFV8+oDNmGUi8ljQ==}
+  '@microsoft/rayfin-connectors@1.36.2':
+    resolution: {integrity: sha512-Eiuyc3+4QYHOvecN/MewEfcJ3Loxve0HnIehMAbrCZKf+YX153yyeWk7vr8YaCENDP2O7OTas1EXVNQC52ni3Q==}
 
-  '@microsoft/rayfin-core@1.34.0':
-    resolution: {integrity: sha512-y3Eaicszhw7njg/LJiXUCTtiBmJFg3kheuTLzkgHlqNJvknFkiCTqERC7W/NWYmoiEHn4jOY0cbTXZrEc7i6YA==}
+  '@microsoft/rayfin-core@1.36.2':
+    resolution: {integrity: sha512-gsQWM+mzoLQVvhp6cATvMOSrh/a/4u7kPXTDK4HKXZdb00AD5VFu2uxDYogzH/7xB9HTKf3SEI30uMIXi5KKIA==}
     peerDependencies:
       typescript: ^5.0.0
 
-  '@microsoft/rayfin-data@1.34.0':
-    resolution: {integrity: sha512-XI9dCBOI6x67LBjmR+MHk7xMXpVExNrbRfBNxd4giI0Rt9Rk1IwdyMD1339u3Ra8YlHVFwvFlngajX3Yxbdt7w==}
+  '@microsoft/rayfin-data@1.36.2':
+    resolution: {integrity: sha512-WELexYmyHlfZsfTVmUFZ8IMKydClLQ3WCoGu+M3twfgVyFhWE7S47XBI1/MCDQSv5a656nsYshk4we1+l90zyQ==}
 
-  '@microsoft/rayfin-functions@1.34.0':
-    resolution: {integrity: sha512-LvjPGIsDHO7OCms6495B9Ay53lAv5Uiq1weMBteV1lYQhYd9bfcvbHsD6m0n5qYl5e07aRIvcXEYBj5/9JSQvg==}
+  '@microsoft/rayfin-functions@1.36.2':
+    resolution: {integrity: sha512-k+rm5vI3hAK5KI0geJHXyc9fBRdIIRD8QFsKRPCrny5XaRwQqZhNcJc+59n1x2Z1i7FxjtjyGLPDE7AQ2ObYjg==}
 
-  '@microsoft/rayfin-lib@1.34.0':
-    resolution: {integrity: sha512-2eUaiqHF7xxBp8wMpzBGdyOa0k6Y5RKwhVDev+G5Px7W92A/3wXE+iQqaHmoIkuH2qTGpB8fOpqlB8it1EKm6A==}
+  '@microsoft/rayfin-lib@1.36.2':
+    resolution: {integrity: sha512-I3juXTwrLHS7/AmY5GhaOTKU7Lzjnhx/6fiZOPQeN+aFmyV8mmRu7qK6BYsQ4yqGXh+acWKE6/8TMZJi7AyiQw==}
+
+  '@microsoft/rayfin-tools-common@1.36.2':
+    resolution: {integrity: sha512-jqneNSY5y1Sl2+tlQJTfWxILevTML7Mb47PnutPiZV9Rr7iyX9U3ldW3QXBYcKACLQlc33DzSeSGlO4XBHDpkA==}
 
   '@napi-rs/wasm-runtime@1.2.3':
     resolution: {integrity: sha512-UMduMbqO5s5zF2NkNacMT/yK5Y5QiKvWr2+50bzIIxFDwVJ2h49b+oyjaCGPhJxd2/gC2x39EHv/gHVuu36x2Q==}
@@ -1369,6 +1376,10 @@ packages:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
     engines: {node: '>= 20.19.0'}
 
+  chownr@3.0.0:
+    resolution: {integrity: sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==}
+    engines: {node: '>=18'}
+
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
@@ -1859,6 +1870,14 @@ packages:
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
 
+  minipass@7.1.3:
+    resolution: {integrity: sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A==}
+    engines: {node: '>=16 || 14 >=14.17'}
+
+  minizlib@3.1.0:
+    resolution: {integrity: sha512-KZxYo1BUkWD2TVFLr0MQoM8vUUigWD3LlD83a/75BqC+4qE0Hb1Vo5v1FgcfaNXvfXzr+5EhQ6ing/CaBijTlw==}
+    engines: {node: '>= 18'}
+
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
@@ -2155,6 +2174,10 @@ packages:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
 
+  tar@7.5.22:
+    resolution: {integrity: sha512-MFO/QzvtAOmJbkhOaCTvbGcFN9L9b+JunIsDwaKljSOdcLMea3NJ1k9Usz/rjdfSXTq4dfzfeS7W4p4YOAAHeA==}
+    engines: {node: '>=18'}
+
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
@@ -2377,6 +2400,10 @@ packages:
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
+  yallist@5.0.0:
+    resolution: {integrity: sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==}
+    engines: {node: '>=18'}
+
   yaml@2.9.0:
     resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
     engines: {node: '>= 14.6'}
@@ -2582,6 +2609,10 @@ snapshots:
     dependencies:
       '@swc/helpers': 0.5.23
 
+  '@isaacs/fs-minipass@4.0.1':
+    dependencies:
+      minipass: 7.1.3
+
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -2628,54 +2659,65 @@ snapshots:
       apache-arrow: 21.2.0
       lz4js: 0.2.0
 
-  '@microsoft/fabric-embedded-host@1.34.0':
+  '@microsoft/fabric-embedded-host@1.36.2':
     dependencies:
-      '@microsoft/rayfin-lib': 1.34.0
+      '@microsoft/rayfin-lib': 1.36.2
 
-  '@microsoft/rayfin-auth-provider-fabric@1.34.0':
+  '@microsoft/rayfin-auth-provider-fabric@1.36.2':
     dependencies:
-      '@microsoft/fabric-embedded-host': 1.34.0
-      '@microsoft/rayfin-auth': 1.34.0
-      '@microsoft/rayfin-lib': 1.34.0
+      '@microsoft/fabric-embedded-host': 1.36.2
+      '@microsoft/rayfin-auth': 1.36.2
+      '@microsoft/rayfin-lib': 1.36.2
 
-  '@microsoft/rayfin-auth@1.34.0':
+  '@microsoft/rayfin-auth@1.36.2':
     dependencies:
-      '@microsoft/rayfin-lib': 1.34.0
+      '@microsoft/rayfin-lib': 1.36.2
 
-  '@microsoft/rayfin-client@1.34.0(typescript@6.0.3)':
+  '@microsoft/rayfin-client@1.36.2(typescript@6.0.3)':
     dependencies:
-      '@microsoft/rayfin-auth': 1.34.0
-      '@microsoft/rayfin-connectors': 1.34.0
-      '@microsoft/rayfin-data': 1.34.0(typescript@6.0.3)
-      '@microsoft/rayfin-functions': 1.34.0
-      '@microsoft/rayfin-lib': 1.34.0
+      '@microsoft/rayfin-auth': 1.36.2
+      '@microsoft/rayfin-connectors': 1.36.2(typescript@6.0.3)
+      '@microsoft/rayfin-data': 1.36.2(typescript@6.0.3)
+      '@microsoft/rayfin-functions': 1.36.2
+      '@microsoft/rayfin-lib': 1.36.2
     transitivePeerDependencies:
       - typescript
 
-  '@microsoft/rayfin-connectors@1.34.0':
+  '@microsoft/rayfin-connectors@1.36.2(typescript@6.0.3)':
     dependencies:
-      '@microsoft/rayfin-lib': 1.34.0
+      '@microsoft/rayfin-core': 1.36.2(typescript@6.0.3)
+      '@microsoft/rayfin-data': 1.36.2(typescript@6.0.3)
+      '@microsoft/rayfin-lib': 1.36.2
+      '@microsoft/rayfin-tools-common': 1.36.2
+    transitivePeerDependencies:
+      - typescript
 
-  '@microsoft/rayfin-core@1.34.0(typescript@6.0.3)':
+  '@microsoft/rayfin-core@1.36.2(typescript@6.0.3)':
     dependencies:
-      '@microsoft/rayfin-lib': 1.34.0
+      '@microsoft/rayfin-lib': 1.36.2
       '@standard-schema/spec': 1.1.0
       typescript: 6.0.3
 
-  '@microsoft/rayfin-data@1.34.0(typescript@6.0.3)':
+  '@microsoft/rayfin-data@1.36.2(typescript@6.0.3)':
     dependencies:
-      '@microsoft/rayfin-core': 1.34.0(typescript@6.0.3)
-      '@microsoft/rayfin-lib': 1.34.0
+      '@microsoft/rayfin-core': 1.36.2(typescript@6.0.3)
+      '@microsoft/rayfin-lib': 1.36.2
     transitivePeerDependencies:
       - typescript
 
-  '@microsoft/rayfin-functions@1.34.0':
+  '@microsoft/rayfin-functions@1.36.2':
     dependencies:
-      '@microsoft/rayfin-lib': 1.34.0
+      '@microsoft/rayfin-lib': 1.36.2
 
-  '@microsoft/rayfin-lib@1.34.0':
+  '@microsoft/rayfin-lib@1.36.2':
     dependencies:
       pluralize: 8.0.0
+
+  '@microsoft/rayfin-tools-common@1.36.2':
+    dependencies:
+      tar: 7.5.22
+      yaml: 2.9.0
+      zod: 4.3.6
 
   '@napi-rs/wasm-runtime@1.2.3(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)':
     dependencies:
@@ -3270,6 +3312,8 @@ snapshots:
     dependencies:
       readdirp: 5.1.1
 
+  chownr@3.0.0: {}
+
   clsx@2.1.1: {}
 
   color-convert@2.0.1:
@@ -3712,6 +3756,12 @@ snapshots:
 
   minimist@1.2.8: {}
 
+  minipass@7.1.3: {}
+
+  minizlib@3.1.0:
+    dependencies:
+      minipass: 7.1.3
+
   mri@1.2.0: {}
 
   mrmime@2.0.1: {}
@@ -4004,6 +4054,14 @@ snapshots:
 
   tapable@2.3.3: {}
 
+  tar@7.5.22:
+    dependencies:
+      '@isaacs/fs-minipass': 4.0.1
+      chownr: 3.0.0
+      minipass: 7.1.3
+      minizlib: 3.1.0
+      yallist: 5.0.0
+
   tinybench@2.9.0: {}
 
   tinyexec@1.3.0: {}
@@ -4152,6 +4210,8 @@ snapshots:
   xml-name-validator@5.0.0: {}
 
   xmlchars@2.2.0: {}
+
+  yallist@5.0.0: {}
 
   yaml@2.9.0: {}
 

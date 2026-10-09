@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import { getAdminContext } from "@vpaa/ui";
+	import { getAdminContext } from "@vpaa/admin";
 	import { getResourceBySlug } from "$lib/admin/generated/resources.js";
 	import { humanizeName, mapAdminError } from "@vpaa/data";
-	import AdminShell from "@vpaa/ui/admin/components/AdminShell.svelte";
-	import AdminErrorView from "@vpaa/ui/admin/components/AdminError.svelte";
-	import EditRecordPanel from "@vpaa/ui/admin/components/EditRecordPanel.svelte";
+	import AdminShell from "@vpaa/admin/admin/components/AdminShell.svelte";
+	import AdminErrorView from "@vpaa/admin/admin/components/AdminError.svelte";
+	import EditRecordPanel from "@vpaa/admin/admin/components/EditRecordPanel.svelte";
 
 	const admin = getAdminContext();
 	const slug = $derived(page.params.resource ?? "");
@@ -40,7 +40,7 @@
 		{#key `${slug}:${id}`}
 			{#if recordPromise}
 				{#await recordPromise}
-					<p class="caption">Loading…</p>
+					<p class="text-sm text-muted-foreground">Loading…</p>
 				{:then payload}
 					{#if (payload.kind === "member" && !payload.found) || (payload.kind === "record" && !payload.found)}
 						<AdminErrorView

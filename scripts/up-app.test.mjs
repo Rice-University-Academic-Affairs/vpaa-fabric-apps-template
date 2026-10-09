@@ -30,18 +30,53 @@ async function withApp(fn, options = {}) {
 	}
 }
 
+const emptyFlags = {
+	dryRun: false,
+	status: false,
+	itemName: null,
+	capacityId: null,
+	excludeServices: null
+};
+
 test("parseArgs reads slug and optional --workspace", () => {
 	assert.deepEqual(parseArgs(["undergrad-attrition-app"]), {
 		slug: "undergrad-attrition-app",
-		workspace: null
+		workspace: null,
+		...emptyFlags
 	});
 	assert.deepEqual(parseArgs(["undergrad-attrition-app", "--workspace", "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace"]), {
 		slug: "undergrad-attrition-app",
-		workspace: "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace"
+		workspace: "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace",
+		...emptyFlags
 	});
 	assert.deepEqual(parseArgs(["--workspace", "EDBI_Fabric_Prod_VPAA_Workspace", "fame"]), {
 		slug: "fame",
-		workspace: "EDBI_Fabric_Prod_VPAA_Workspace"
+		workspace: "EDBI_Fabric_Prod_VPAA_Workspace",
+		...emptyFlags
+	});
+});
+
+test("parseArgs reads Rayfin 1.36 deploy flags", () => {
+	assert.deepEqual(
+		parseArgs(["fame", "--dry-run", "--exclude-services", "functions", "--capacity-id", "cap-1"]),
+		{
+			slug: "fame",
+			workspace: null,
+			dryRun: true,
+			status: false,
+			itemName: null,
+			capacityId: "cap-1",
+			excludeServices: "functions"
+		}
+	);
+	assert.deepEqual(parseArgs(["fame", "--status", "--item-name", "FAME"]), {
+		slug: "fame",
+		workspace: null,
+		dryRun: false,
+		status: true,
+		itemName: "FAME",
+		capacityId: null,
+		excludeServices: null
 	});
 });
 
@@ -101,6 +136,36 @@ test("upApp runs rayfin up from the app directory and never logs in", async () =
 		assert.equal(calls[0].args.includes("login"), false);
 		assert.deepEqual(calls[0].args.slice(0, 3), ["exec", "rayfin", "up"]);
 	}, { workspaceName: "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace" });
+});
+
+test("upApp dry-run and status do not persist workspace-name", async () => {
+	await withApp(async ({ tmp, slug, appDir }) => {
+		const calls = [];
+		await upApp({
+			slug,
+			workspace: "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace",
+			dryRun: true,
+			repoRoot: tmp,
+			run: async (command, args, cwd) => {
+				calls.push({ command, args, cwd });
+			}
+		});
+		assert.ok(calls[0].args.includes("--dry-run"));
+		assert.equal(await workspaceFromNameFile(appDir), null);
+
+		calls.length = 0;
+		await upApp({
+			slug,
+			workspace: "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace",
+			status: true,
+			repoRoot: tmp,
+			run: async (command, args, cwd) => {
+				calls.push({ command, args, cwd });
+			}
+		});
+		assert.deepEqual(calls[0].args.slice(0, 4), ["exec", "rayfin", "up", "status"]);
+		assert.equal(await workspaceFromNameFile(appDir), null);
+	});
 });
 
 test("upApp prefers --workspace, persists it, and does not use deployments.json active", async () => {

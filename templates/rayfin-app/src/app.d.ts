@@ -16,6 +16,7 @@ declare global {
 		readonly PUBLIC_ADMIN_TEST_MODE?: string;
 		readonly PUBLIC_OWNER_ADMIN_EMAIL?: string;
 		readonly VITE_OWNER_ADMIN_EMAIL?: string;
+		readonly VITE_RAYFIN_OWNER_ADMIN_EMAIL?: string;
 	}
 
 	interface ImportMeta {

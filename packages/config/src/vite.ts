@@ -3,7 +3,7 @@ import path from "node:path";
 export type ViteAlias = { find: string; replacement: string };
 
 function uiLibFromAppRoot(fromDir: string): string {
-	return path.resolve(fromDir, "../../packages/ui/src/lib");
+	return path.resolve(fromDir, "../../packages/admin/src/lib");
 }
 
 export function createUiWorkspaceAliases(fromDir: string): ViteAlias[] {

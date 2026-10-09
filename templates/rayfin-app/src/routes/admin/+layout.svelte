@@ -1,16 +1,18 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import { page } from "$app/state";
-	import { setAdminContext, type AdminContext } from "@vpaa/ui";
+	import { AppShell, setAdminContext, type AdminContext } from "@vpaa/admin";
 	import type { AdminAccessResult } from "@vpaa/auth";
 	import { adminResources } from "$lib/admin/generated/resources.js";
 	import { isAdminTestMode, RayfinAdminData } from "@vpaa/data";
 	import { FabricAuthConfigError, RayfinAdminMembership, resolveOwnerAdminEmail } from "@vpaa/auth";
 	import { getTestAdminContext } from "$lib/admin/test/bootstrap.js";
+	import { buildPrimaryNavigation } from "$lib/auth/navigation.js";
+	import { productShell } from "$lib/chrome.js";
 	import type { AdminData, AdminIdentity } from "$lib/admin/types.js";
-	import AdminErrorView from "@vpaa/ui/admin/components/AdminError.svelte";
-	import { PageContainer } from "@vpaa/ui/components/page/index.js";
-	import { Button } from "@vpaa/ui/components/ui/button/index.js";
+	import AdminErrorView from "@vpaa/admin/admin/components/AdminError.svelte";
+	import { PageContainer } from "@vpaa/admin/components/page/index.js";
+	import { Button } from "@vpaa/admin/components/ui/button/index.js";
 	import { getRayfinClient } from "$lib/rayfin/client.js";
 
 	let {
@@ -57,6 +59,9 @@
 	const access = $derived(data.access);
 	const gateError = $derived(clientInitError ?? data.adminError ?? null);
 	const identityKey = $derived(page.data.email ?? access.identity?.email ?? "anon");
+	const navigation = $derived(
+		buildPrimaryNavigation({ isAdmin: Boolean(page.data.isAdmin) })
+	);
 
 	$effect(() => {
 		if (!productionCtx) return;
@@ -82,76 +87,91 @@
 	});
 </script>
 
-{#if testMode}
-	{#key identityKey}
-		{#if access.status === "unauthenticated"}
-			<PageContainer>
-				<div class="flex flex-col gap-4">
+{#snippet body()}
+	{#if testMode}
+		{#key identityKey}
+			{#if access.status === "unauthenticated"}
+				<PageContainer>
+					<div class="flex flex-col gap-4">
+						<AdminErrorView
+							title="Sign in required"
+							message="Sign in with Rayfin to access Admin."
+							kind="unauthorized"
+						/>
+						<Button
+							onclick={() => {
+								const harness = window.__ADMIN_TEST__;
+								if (harness) void harness.setIdentity(harness.identities.TEST_OWNER);
+							}}
+						>
+							Sign in
+						</Button>
+					</div>
+				</PageContainer>
+			{:else if access.status === "forbidden"}
+				<PageContainer>
 					<AdminErrorView
-						title="Sign in required"
-						message="Sign in with Rayfin to access Admin."
-						kind="unauthorized"
+						title="Forbidden"
+						message="You do not have administrator access."
+						kind="forbidden"
 					/>
-					<Button
-						onclick={() => {
-							const harness = window.__ADMIN_TEST__;
-							if (harness) void harness.setIdentity(harness.identities.TEST_OWNER);
-						}}
-					>
-						Sign in
-					</Button>
-				</div>
-			</PageContainer>
-		{:else if access.status === "forbidden"}
-			<PageContainer>
-				<AdminErrorView
-					title="Forbidden"
-					message="You do not have administrator access."
-					kind="forbidden"
-				/>
-			</PageContainer>
-		{:else if access.status === "error"}
-			<PageContainer>
-				<AdminErrorView
-					title="Something went wrong"
-					message="Unable to verify administrator access."
-					kind="unexpected"
-				/>
-			</PageContainer>
-		{:else}
+				</PageContainer>
+			{:else if access.status === "error"}
+				<PageContainer>
+					<AdminErrorView
+						title="Something went wrong"
+						message="Unable to verify administrator access."
+						kind="unexpected"
+					/>
+				</PageContainer>
+			{:else}
+				{@render children()}
+			{/if}
+		{/key}
+	{:else if access.status === "unauthenticated"}
+		<PageContainer>
+			<AdminErrorView
+				title="Sign in required"
+				message="Admin requires an authenticated Fabric / Rayfin session."
+				kind="unauthorized"
+			/>
+		</PageContainer>
+	{:else if access.status === "forbidden"}
+		<PageContainer>
+			<AdminErrorView
+				title="Forbidden"
+				message="You do not have administrator access."
+				kind="forbidden"
+			/>
+		</PageContainer>
+	{:else if gateError || access.status === "error"}
+		<PageContainer>
+			<AdminErrorView
+				title="Something went wrong"
+				message={gateError ?? "Unable to verify administrator access."}
+				kind="unexpected"
+			/>
+		</PageContainer>
+	{:else if access.status === "allowed" && rayfinReady}
+		{#key identityKey}
 			{@render children()}
-		{/if}
-	{/key}
-{:else if access.status === "unauthenticated"}
-	<PageContainer>
-		<AdminErrorView
-			title="Sign in required"
-			message="Admin requires an authenticated Fabric / Rayfin session."
-			kind="unauthorized"
-		/>
-	</PageContainer>
-{:else if access.status === "forbidden"}
-	<PageContainer>
-		<AdminErrorView
-			title="Forbidden"
-			message="You do not have administrator access."
-			kind="forbidden"
-		/>
-	</PageContainer>
-{:else if gateError || access.status === "error"}
-	<PageContainer>
-		<AdminErrorView
-			title="Something went wrong"
-			message={gateError ?? "Unable to verify administrator access."}
-			kind="unexpected"
-		/>
-	</PageContainer>
-{:else if access.status === "allowed" && rayfinReady}
-	{#key identityKey}
-		{@render children()}
-	{/key}
+		{/key}
+	{:else}
+		<PageContainer>
+			<p class="text-sm text-muted-foreground">Loading admin…</p>
+		</PageContainer>
+	{/if}
+{/snippet}
+
+{#if productShell}
+	{@render body()}
 {:else}
-	<PageContainer>
-		<p class="caption">Loading admin…</p>
-	</PageContainer>
+	<AppShell
+		appName="{{displayName}}"
+		{navigation}
+		currentPath={page.url.pathname}
+		user={{ name: page.data.email ?? "Signed out", id: page.data.email ?? undefined }}
+	>
+		{@render body()}
+	</AppShell>
 {/if}

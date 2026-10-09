@@ -9,6 +9,6 @@ alwaysApply: false
 - New logic goes in Vitest. Playwright covers wiring (nav, drawers, seed, env).
 - After a logic change, run `pnpm --filter <pkg> test`.
 - After a route, layout, or e2e-helper change, run that package's `test:smoke`.
-- Full `test:e2e` is explicit only. `@vpaa/ui` e2e covers platform admin and portal components once; product apps run only their own specs.
-- Root `test:smoke` and `test:e2e` run `@vpaa/ui` once, then every app under `apps/` sequentially because they share Vite 5173. Do not skip an app.
+- Full `test:e2e` is explicit only. `@vpaa/admin` e2e covers platform admin and portal components once; product apps run only their own specs.
+- Root `test:smoke` and `test:e2e` run `@vpaa/admin` once, then every app under `apps/` sequentially because they share Vite 5173. Do not skip an app.
 - Do not copy platform admin e2e into product apps.

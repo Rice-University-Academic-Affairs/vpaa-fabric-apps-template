@@ -1,0 +1,16 @@
+{
+	"name": "@vpaa/{{slug}}-functions",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"build": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@microsoft/fabric-user-data-functions": "catalog:"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"typescript": "catalog:"
+	}
+}

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { page } from "$app/state";
 	import { browser } from "$app/environment";
-	import { AppShell } from "@vpaa/ui";
+	import { AppShell } from "@vpaa/admin";
 	import { buildPrimaryNavigation } from "$lib/auth/navigation.js";
+	import { productShell } from "$lib/chrome.js";
 	import { isAdminTestMode } from "@vpaa/data";
 	import { getTestAdminContext } from "$lib/admin/test/bootstrap.js";
 	import { installAdminTestWindow } from "$lib/admin/test/install-harness.js";
@@ -23,11 +24,15 @@
 	const navigation = $derived(buildPrimaryNavigation({ isAdmin: Boolean(data.isAdmin) }));
 </script>
 
-<AppShell
-	appName="{{displayName}}"
-	{navigation}
-	currentPath={page.url.pathname}
-	user={{ name: data.email ?? "Signed out", id: data.email ?? undefined }}
->
+{#if productShell}
+	<AppShell
+		appName="{{displayName}}"
+		{navigation}
+		currentPath={page.url.pathname}
+		user={{ name: data.email ?? "Signed out", id: data.email ?? undefined }}
+	>
+		{@render children()}
+	</AppShell>
+{:else}
 	{@render children()}
-</AppShell>
+{/if}
