@@ -140,7 +140,7 @@ Use `node scripts/fabric-app-data.mjs query <alias> --query '<DAX>'` to run quer
 |---------|----------|
 | CLI `query` fails with "not signed in" | Run `az login` to sign in to Azure CLI |
 | CLI `query` fails with "Azure CLI is not installed" | Install from https://aka.ms/install-azure-cli |
-| CLI `query` fails with "alias not found" | From the repo root: `pnpm register-semantic-model --from-url "<url>" --app apps/<slug>` |
+| CLI `query` fails with "alias not found" | From the repo root: `pnpm add-semantic-model <slug> "<url>"` |
 | DAX syntax errors | Consult [dax-core-reference.md](./references/dax-core-reference.md) — check reserved keywords, quoting rules, EVALUATE/scalar mistakes |
 | Unexpected query results | Check filter context, relationship direction, BLANK handling in [dax-core-reference.md](./references/dax-core-reference.md#blank-semantics) |
 | Time intelligence returns wrong values | Check date table prerequisites and critical rules in [dax-time-intelligence.md](./references/dax-time-intelligence.md) |

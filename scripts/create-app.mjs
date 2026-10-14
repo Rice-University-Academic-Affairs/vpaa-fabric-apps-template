@@ -2,56 +2,43 @@ import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
-import { parseFabricPortalUrl, writeFabricYaml } from "./register-semantic-model.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const templateDir = path.join(repoRoot, "templates", "rayfin-app");
 const reserved = new Set(["ui", "admin", "data", "auth", "types", "config"]);
+const USAGE = "Usage: pnpm new-app <slug> [--fabric] [--functions] [--blank]";
+const BOOL_FLAGS = new Set(["fabric", "functions", "blank"]);
 
 export function parseArgs(argv) {
 	const flags = new Set();
-	const values = {};
 	const positionals = [];
-	for (let i = 0; i < argv.length; i++) {
-		const arg = argv[i];
+	for (const arg of argv) {
 		if (arg.startsWith("--")) {
 			const name = arg.slice(2);
-			if (name === "from-url" || name === "alias") {
-				const value = argv[++i];
-				if (!value || value.startsWith("--")) {
-					throw new Error(
-						`Usage: pnpm new-app <slug> [--fabric | --semantic] [--functions] [--blank] [--from-url <url>]`
-					);
-				}
-				values[name] = value;
-				continue;
+			if (name === "semantic" || name === "from-url" || name === "alias") {
+				throw new Error(
+					`Use pnpm add-semantic-model <slug> "<url>" after creating the app.`
+				);
+			}
+			if (!BOOL_FLAGS.has(name)) {
+				throw new Error(USAGE);
 			}
 			flags.add(name);
 			continue;
 		}
 		positionals.push(arg);
 	}
-	const fromUrl = values["from-url"] ?? null;
-	const semantic = flags.has("semantic") || Boolean(fromUrl);
-	if (flags.has("fabric") && semantic) {
-		throw new Error(
-			"Usage: pnpm new-app <slug> [--fabric | --semantic] [--functions] [--blank] (--fabric and --semantic are mutually exclusive)"
-		);
-	}
 	return {
 		slug: positionals[0],
 		fabric: flags.has("fabric"),
-		semantic,
 		functions: flags.has("functions"),
-		blank: flags.has("blank"),
-		fromUrl,
-		alias: values.alias ?? "default"
+		blank: flags.has("blank")
 	};
 }
 
 export function assertSlug(slug) {
 	if (!slug || typeof slug !== "string") {
-		throw new Error("Usage: pnpm new-app <slug> [--fabric | --semantic] [--functions] [--blank] [--from-url <url>]");
+		throw new Error(USAGE);
 	}
 	if (!/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(slug)) {
 		throw new Error(`Invalid slug "${slug}". Use kebab-case (e.g. faculty-activity).`);
@@ -124,32 +111,6 @@ export async function patchRayfinBuildCommand(appDir) {
 	await writeFile(ymlPath, yml, "utf8");
 }
 
-export async function applySemanticScaffold(appDir) {
-	const ymlPath = path.join(appDir, "rayfin", "rayfin.yml");
-	let yml = await readFile(ymlPath, "utf8");
-	yml = yml.replace(/data:\r?\n    enabled: true\r?\n    dialect: mssql/, "data:\n    enabled: false");
-	await writeFile(ymlPath, yml, "utf8");
-
-	const pkgPath = path.join(appDir, "package.json");
-	const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
-	pkg.scripts["build:fabric"] =
-		"node scripts/fabric-app-data.mjs generate -o src/fabric.generated.ts && svelte-kit sync && vite build";
-	pkg.dependencies = {
-		...pkg.dependencies,
-		"@microsoft/fabric-app-data": "catalog:",
-		"@microsoft/fabric-app-data-embed-client": "catalog:",
-		"@microsoft/fabric-app-data-proxy": "catalog:",
-		"@vpaa/semantic": "workspace:*",
-		arquero: "catalog:"
-	};
-	pkg.devDependencies = {
-		"@microsoft/fabric-app-data-cli": "catalog:",
-		"@microsoft/fabric-app-data-cli-proxy": "catalog:",
-		...pkg.devDependencies
-	};
-	await writeFile(pkgPath, `${JSON.stringify(pkg, null, "\t")}\n`, "utf8");
-}
-
 export async function applyBlankScaffold(appDir) {
 	await writeFile(
 		path.join(appDir, "src", "lib", "chrome.ts"),
@@ -196,20 +157,11 @@ export async function createApp(slug, options = {}) {
 	const destDir = path.join(repoRoot, "apps", slug);
 	const vars = substitutions(slug);
 	await copyTemplate(destDir, vars);
-	if (options.semantic || options.fromUrl) {
-		await applySemanticScaffold(destDir);
-	}
 	if (options.functions) {
 		await applyFunctionsScaffold(destDir);
 	}
 	if (options.blank) {
 		await applyBlankScaffold(destDir);
-	}
-	if (options.fromUrl) {
-		await writeFabricYaml(destDir, {
-			...parseFabricPortalUrl(options.fromUrl),
-			alias: options.alias ?? "default"
-		});
 	}
 	if (options.fabric) {
 		try {
@@ -248,9 +200,7 @@ export async function createApp(slug, options = {}) {
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
 if (isMain) {
-	const { slug, fabric, semantic, functions, blank, fromUrl, alias } = parseArgs(
-		process.argv.slice(2)
-	);
-	await createApp(slug, { fabric, semantic, functions, blank, fromUrl, alias });
-	console.log(`Created apps/${slug}. Next: pnpm --filter @vpaa/${slug} dev`);
+	const { slug, fabric, functions, blank } = parseArgs(process.argv.slice(2));
+	await createApp(slug, { fabric, functions, blank });
+	console.log(`Created apps/${slug}. Next: pnpm start-app ${slug}`);
 }

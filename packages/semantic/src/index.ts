@@ -8,7 +8,7 @@ export {
 	clearQueryCache,
 	querySemanticModel,
 	readSemanticModelTable,
-	type ReadSemanticModelTableResult,
+	type ReadTableOptions,
 	type SemanticQueryClient,
 	type SemanticQueryOptions
 } from "./query-semantic-model.js";

@@ -11,22 +11,19 @@ import {
 } from "./test/fake-semantic-client.js";
 
 describe("readSemanticModelTable call shape", () => {
-	it("queries the passed alias with EVALUATE and a quoted table name", async () => {
+	it("queries the default alias with EVALUATE and a quoted table name", async () => {
 		const client = createRecordingClient((alias, dax) => {
 			if (alias !== "default" || dax !== "EVALUATE 'Sales'") {
 				return queryError(`unexpected ${alias} ${dax}`);
 			}
 			return successTable([{ name: "Sales[Amount]", dataType: "Int64" }], [[42]]);
 		});
-		const result = await readSemanticModelTable("default", "Sales", { client });
+		const rows = await readSemanticModelTable("Sales", { client });
 		expect(client.calls).toEqual([
 			{ type: "semanticModel", alias: "default" },
 			{ type: "query", alias: "default", dax: "EVALUATE 'Sales'", options: undefined }
 		]);
-		expect(result.status).toBe("success");
-		if (result.status !== "success") return;
-		expect(result.table.columnNames()).toEqual(["Amount"]);
-		expect(result.table.objects()).toEqual([{ Amount: 42 }]);
+		expect(rows).toEqual([{ Amount: 42 }]);
 	});
 
 	it("quotes table names that contain spaces", async () => {
@@ -34,14 +31,11 @@ describe("readSemanticModelTable call shape", () => {
 			if (dax !== "EVALUATE 'Sales Order'") return queryError(`unexpected dax ${dax}`);
 			return successTable([{ name: "Sales Order[Id]" }], [["so-1"]]);
 		});
-		const result = await readSemanticModelTable("default", "Sales Order", { client });
+		const rows = await readSemanticModelTable("Sales Order", { client });
 		expect(client.calls.some((call) => call.type === "query" && call.dax === "EVALUATE 'Sales Order'")).toBe(
 			true
 		);
-		expect(result.status).toBe("success");
-		if (result.status !== "success") return;
-		expect(result.table.columnNames()).toEqual(["Id"]);
-		expect(result.table.objects()).toEqual([{ Id: "so-1" }]);
+		expect(rows).toEqual([{ Id: "so-1" }]);
 	});
 
 	it("escapes single quotes in table names", async () => {
@@ -49,7 +43,7 @@ describe("readSemanticModelTable call shape", () => {
 			if (dax !== "EVALUATE 'O''Brien'") return queryError(`unexpected dax ${dax}`);
 			return successTable([{ name: "O'Brien[N]" }], [[1]]);
 		});
-		await readSemanticModelTable("hr", "O'Brien", { client });
+		await readSemanticModelTable("O'Brien", { client, connection: "hr" });
 		expect(client.calls).toEqual([
 			{ type: "semanticModel", alias: "hr" },
 			{ type: "query", alias: "hr", dax: "EVALUATE 'O''Brien'", options: undefined }
@@ -60,7 +54,7 @@ describe("readSemanticModelTable call shape", () => {
 		const client = createRecordingClient(() =>
 			successTable([{ name: "Sales[Amount]" }], [[1]])
 		);
-		await readSemanticModelTable("sales", "Sales", { client, bypassCache: true });
+		await readSemanticModelTable("Sales", { client, connection: "sales", bypassCache: true });
 		const queryCall = client.calls.find((call) => call.type === "query");
 		expect(queryCall).toEqual({
 			type: "query",
@@ -89,11 +83,8 @@ describe("readSemanticModelTable result mapping", () => {
 				{ fromCache: true, cachedAt }
 			)
 		);
-		const result = await readSemanticModelTable("default", "Faculty", { client });
-		expect(result).toMatchObject({ status: "success", fromCache: true, cachedAt });
-		if (result.status !== "success") return;
-		expect(result.table.columnNames()).toEqual(["Faculty ID", "Name"]);
-		expect(result.table.objects()).toEqual([
+		const rows = await readSemanticModelTable("Faculty", { client });
+		expect(rows).toEqual([
 			{ "Faculty ID": 7, Name: "Ada" },
 			{ "Faculty ID": 8, Name: "Grace" }
 		]);
@@ -109,18 +100,19 @@ describe("readSemanticModelTable result mapping", () => {
 				[["Ada", "Math"]]
 			)
 		);
-		const result = await readSemanticModelTable("default", "Faculty", { client });
-		if (result.status !== "success") throw new Error("expected success");
-		expect(result.table.columnNames()).toEqual(["Name", "Name_2"]);
-		expect(result.table.objects()).toEqual([{ Name: "Ada", Name_2: "Math" }]);
+		const rows = await readSemanticModelTable("Faculty", { client });
+		expect(rows).toEqual([{ Name: "Ada", Name_2: "Math" }]);
 	});
 
-	it("surfaces query errors without throwing or fabricating a table", async () => {
+	it("returns an empty list when the query fails", async () => {
 		const error = { category: "query" as const, message: "Syntax error at position 18" };
 		const client = createRecordingClient(() => ({ status: "error", error, fromCache: false }));
-		const result = await readSemanticModelTable("default", "Missing", { client });
-		expect(result).toEqual({ status: "error", error, fromCache: false });
-		expect(result).not.toHaveProperty("table");
+		const rows = await readSemanticModelTable("Missing", { client });
+		expect(rows).toEqual([]);
+	});
+
+	it("returns an empty list when the client is missing", async () => {
+		await expect(readSemanticModelTable("Sales")).resolves.toEqual([]);
 	});
 });
 
@@ -173,14 +165,12 @@ describe("injected client anti-tautology", () => {
 			}
 			return successTable([{ name: "Stock[Sku]" }], [["A1"]]);
 		});
-		const result = await readSemanticModelTable("inventory", "Stock", { client: used });
+		const rows = await readSemanticModelTable("Stock", { client: used, connection: "inventory" });
 		expect(unused.calls).toEqual([]);
 		expect(used.calls).toEqual([
 			{ type: "semanticModel", alias: "inventory" },
 			{ type: "query", alias: "inventory", dax: "EVALUATE 'Stock'", options: undefined }
 		]);
-		expect(result.status).toBe("success");
-		if (result.status !== "success") return;
-		expect(result.table.objects()).toEqual([{ Sku: "A1" }]);
+		expect(rows).toEqual([{ Sku: "A1" }]);
 	});
 });

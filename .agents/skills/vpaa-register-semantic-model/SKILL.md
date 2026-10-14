@@ -18,40 +18,37 @@ Two query paths:
 
 Do not use `pnpm exec fabric-app-data`. On this Windows/pnpm layout that CLI is a no-op.
 
-1. Confirm target `apps/<slug>`. If the app does not exist, use `vpaa-create-app` with `pnpm new-app <slug> --semantic --from-url "<url>"` (that writes `fabric.yaml` in the same step). If the user also gave a Fabric workspace name, that skill’s deploy step (`pnpm up-app <slug> --workspace "<name>"`, never `npx rayfin`) is still required after this yaml is written. Refuse to wire this into `@vpaa/admin` or package internals. If the app exists but was not scaffolded with `--semantic`, run that path’s equivalent (no SQL, `@vpaa/semantic` + fabric-app-data deps, generate hooked into `build:fabric`) before continuing.
+1. Confirm target `apps/<slug>`. If the app does not exist, use `vpaa-create-app` (`pnpm new-app <slug>`) first, then this command. If the user also gave a Fabric workspace name, that skill’s deploy step (`pnpm up-app <slug> "<name>"`, never `npx rayfin`) is still required after this yaml is written. Refuse to wire this into `@vpaa/admin` or package internals. Do not turn off `services.data`; a SQL database on the app stays on.
 2. Ask for the Fabric portal URL of the semantic model if missing. Supported paths include `/groups/{workspaceId}/modeling/{itemId}`, `/groups/{workspaceId}/semanticmodels/{itemId}`, and OneLake `/details/{workspaceId}/dataset/{itemId}`. Then from the repo root:
 
 ```sh
-pnpm register-semantic-model --from-url "<Fabric URL of the semantic model>" --app apps/<slug>
+pnpm add-semantic-model <slug> "<Fabric URL of the semantic model>"
 ```
 
 Use `--alias <name>` when the user names one (default is `default`).
 
-That writes `apps/<slug>/fabric.yaml` and `apps/<slug>/src/fabric.generated.ts` from the URL. No Azure or Rayfin login.
+That writes `apps/<slug>/fabric.yaml` and `apps/<slug>/src/fabric.generated.ts` from the URL, adds `@vpaa/semantic` and fabric-app-data deps, writes `src/lib/semantic.ts`, and hooks `fabric:generate` into `predev` and `build:fabric`. No Azure or Rayfin login.
 
-3. `build:fabric` must already run `node scripts/fabric-app-data.mjs generate -o src/fabric.generated.ts` before the Vite build (this is what `pnpm new-app --semantic` writes). Gitignore `src/fabric.generated.ts`.
+3. Confirm `predev` and `build:fabric` run `fabric:generate` (`node scripts/fabric-app-data.mjs generate -o src/fabric.generated.ts`). Gitignore `src/fabric.generated.ts`. Pages import `$lib/semantic.js`, not the generated file.
 4. Query only after `loadAppAuth` reports authenticated. Skip DAX when `isAdminTestMode()` so local smoke does not hit Fabric.
 
-`readSemanticModelTable` returns Arquero (`result.table.objects()`). `querySemanticModel` returns a raw Fabric `QueryTable` (`result.table.columns`, `result.table.rows`). Never call `.objects()` on a `querySemanticModel` result — that throws `TypeError: table.objects is not a function` and the Fabric embed shows a 500.
+`readSemanticModelTable` (from `$lib/semantic.js`) returns row objects and `[]` on failure. `querySemanticModel` returns a raw Fabric `QueryTable` (`result.table.columns`, `result.table.rows`). Never call `.objects()` on a `querySemanticModel` result — that throws `TypeError: table.objects is not a function` and the Fabric embed shows a 500.
 
 ```ts
 import { loadAppAuth } from "@vpaa/auth";
 import { isAdminTestMode } from "@vpaa/data";
-import { fabricConfig } from "./fabric.generated.js";
-import { getFabricClient, querySemanticModel } from "@vpaa/semantic";
+import { readSemanticModelTable } from "$lib/semantic.js";
 
 export const load = async () => {
 	if (isAdminTestMode()) return { rows: [] };
 	const auth = await loadAppAuth();
 	if (!auth.authenticated) return { rows: [] };
-	getFabricClient(fabricConfig);
-	const result = await querySemanticModel("default", "EVALUATE { 1 }");
-	if (result.status === "error") return { rows: [] };
-	return { rows: result.table.rows };
+	const rows = await readSemanticModelTable("Sales");
+	return { rows };
 };
 ```
 
 Do not call `bootstrapAuth` from a new service file. Do not import `@vpaa/semantic` internals.
 
 5. Remind the user to share the semantic model with the same people who open the Fabric app.
-6. Schema discovery and DAX authoring: `packages/semantic/.agents/skills/`.
+6. Schema discovery and DAX authoring: `.agents/skills/` at the repository root.

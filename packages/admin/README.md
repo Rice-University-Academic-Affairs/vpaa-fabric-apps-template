@@ -14,11 +14,9 @@ Open the app and click the sparkles icon to try chat. No API key is required —
 
 Admin test fixtures live under `rayfin/data/fixtures/` (Products, Faculty, …). The platform allowlist entity is `rayfin/data/core/AdminUser.ts`. `pnpm --filter @vpaa/admin dev` sets `PUBLIC_ADMIN_TEST_MODE=true` for the in-browser harness. This package is not a Fabric deployable.
 
-## Use in your SvelteKit app
+## Use in a workspace app
 
-```sh
-npm install @vpaa/admin @tailwindcss/vite
-```
+`pnpm new-app` already adds `@vpaa/admin` as `workspace:*`. Import the public entry (`@vpaa/admin`, `@vpaa/admin/theme.css`), not package internals.
 
 Peer dependencies: `svelte ^5`, `tailwindcss ^4`, `@lucide/svelte ^1`.
 

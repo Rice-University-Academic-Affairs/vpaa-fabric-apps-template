@@ -38,21 +38,28 @@ const emptyFlags = {
 	excludeServices: null
 };
 
-test("parseArgs reads slug and optional --workspace", () => {
+test("parseArgs reads slug and optional workspace name", () => {
 	assert.deepEqual(parseArgs(["undergrad-attrition-app"]), {
 		slug: "undergrad-attrition-app",
 		workspace: null,
 		...emptyFlags
 	});
-	assert.deepEqual(parseArgs(["undergrad-attrition-app", "--workspace", "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace"]), {
-		slug: "undergrad-attrition-app",
-		workspace: "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace",
-		...emptyFlags
-	});
-	assert.deepEqual(parseArgs(["--workspace", "EDBI_Fabric_Prod_VPAA_Workspace", "fame"]), {
+	assert.deepEqual(
+		parseArgs(["undergrad-attrition-app", "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace"]),
+		{
+			slug: "undergrad-attrition-app",
+			workspace: "EDBI_Fabric_Prod_SAWS_Collaborative_Workspace",
+			...emptyFlags
+		}
+	);
+	assert.deepEqual(parseArgs(["fame", "--dry-run", "EDBI_Fabric_Prod_VPAA_Workspace"]), {
 		slug: "fame",
 		workspace: "EDBI_Fabric_Prod_VPAA_Workspace",
-		...emptyFlags
+		dryRun: true,
+		status: false,
+		itemName: null,
+		capacityId: null,
+		excludeServices: null
 	});
 });
 
@@ -86,11 +93,11 @@ test("parseArgs accepts @vpaa/ and apps/ prefixes", () => {
 	assert.equal(normalizeSlug("apps\\fame"), "fame");
 });
 
-test("parseArgs rejects missing slug, unknown flags, and --workspace without a value", () => {
+test("parseArgs rejects missing slug, extra args, and --workspace", () => {
 	assert.throws(() => parseArgs([]), USAGE);
-	assert.throws(() => parseArgs(["fame", "extra"]), USAGE);
+	assert.throws(() => parseArgs(["fame", "one", "two"]), USAGE);
 	assert.throws(() => parseArgs(["fame", "--yes"]), USAGE);
-	assert.throws(() => parseArgs(["fame", "--workspace"]), USAGE);
+	assert.throws(() => parseArgs(["fame", "--workspace", "EDBI_Fabric_Prod_VPAA_Workspace"]), USAGE);
 	assert.throws(() => parseArgs(["Fame"]), /Invalid slug/);
 });
 
@@ -168,7 +175,7 @@ test("upApp dry-run and status do not persist workspace-name", async () => {
 	});
 });
 
-test("upApp prefers --workspace, persists it, and does not use deployments.json active", async () => {
+test("upApp prefers a passed workspace name, persists it, and does not use deployments.json active", async () => {
 	await withApp(async ({ tmp, slug, appDir }) => {
 		const calls = [];
 		await upApp({
@@ -211,7 +218,7 @@ test("upApp prefers --workspace, persists it, and does not use deployments.json 
 					throw new Error("should not run");
 				}
 			}),
-			/First deploy of faculty-activity needs --workspace/
+			/First deploy of faculty-activity needs a Fabric workspace name/
 		);
 	});
 });

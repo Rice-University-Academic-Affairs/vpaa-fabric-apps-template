@@ -1,7 +1,6 @@
 import {
 	type CachedQueryResult,
 	type QueryCacheOptions,
-	type QueryError,
 	type QueryTable
 } from "@microsoft/fabric-app-data";
 import { table, type ColumnTable } from "arquero";
@@ -21,9 +20,9 @@ export type SemanticQueryOptions = {
 	config?: FabricDataConfig;
 };
 
-export type ReadSemanticModelTableResult =
-	| { status: "success"; table: ColumnTable; fromCache: boolean; cachedAt?: Date }
-	| { status: "error"; error: QueryError; fromCache: boolean };
+export type ReadTableOptions = SemanticQueryOptions & {
+	connection?: string;
+};
 
 function unqualifyColumnName(qualified: string, tableName: string): string {
 	const prefix = `${tableName}[`;
@@ -70,25 +69,20 @@ function cacheOptions(options?: SemanticQueryOptions): QueryCacheOptions | undef
 	return options?.bypassCache ? { bypassCache: true } : undefined;
 }
 
-export function readSemanticModelTable(
-	connection: string,
+export async function readSemanticModelTable(
 	tableName: string,
-	options?: SemanticQueryOptions
-): Promise<ReadSemanticModelTableResult> {
-	return resolveClient(options)
-		.semanticModel(connection)
-		.query(`EVALUATE ${formatDaxTableRef(tableName)}`, cacheOptions(options))
-		.then((result) => {
-			if (result.status === "error") {
-				return { status: "error" as const, error: result.error, fromCache: result.fromCache };
-			}
-			return {
-				status: "success" as const,
-				table: toArqueroTable(result.table, tableName),
-				fromCache: result.fromCache,
-				cachedAt: result.cachedAt
-			};
-		});
+	options?: ReadTableOptions
+): Promise<Record<string, unknown>[]> {
+	try {
+		const connection = options?.connection ?? "default";
+		const result = await resolveClient(options)
+			.semanticModel(connection)
+			.query(`EVALUATE ${formatDaxTableRef(tableName)}`, cacheOptions(options));
+		if (result.status === "error") return [];
+		return result.table ? toArqueroTable(result.table, tableName).objects() : [];
+	} catch {
+		return [];
+	}
 }
 
 export function querySemanticModel(

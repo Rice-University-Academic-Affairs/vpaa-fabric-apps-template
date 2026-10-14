@@ -10,12 +10,12 @@ Rayfin 1.36.2 CLI contract: https://rayfin.ai/docs/reference/changelog
 From the repo root. Never `npx rayfin`. Never run `rayfin up` from the repository root (`buildCommand` is `npm run build:fabric` and only resolves in `apps/<slug>`). `pnpm up-app` cds there.
 
 - Update: `pnpm up-app <slug>`
-- First publish or retarget: `pnpm up-app <slug> --workspace "<Fabric workspace name>"`
+- First publish or retarget: `pnpm up-app <slug> "<Fabric workspace name>"`
 - Validate without changing Fabric: `pnpm up-app <slug> --dry-run`
 - Print hosting URL / status: `pnpm up-app <slug> --status`
 - Optional: `--item-name <name>`, `--capacity-id <id>`, `--exclude-services functions`
 
-`--workspace` is the portal workspace **name**, not the GUID and not the kebab key in `.deployments.json`. Omitting it reuses `apps/<slug>/rayfin/workspace-name`. If that file is missing, require `--workspace`. A successful (non-dry-run, non-status) up writes that file. `@vpaa/admin` is not a Fabric deployable.
+The workspace argument is the portal workspace **name**, not the GUID and not the kebab key in `.deployments.json`. Omitting it reuses `apps/<slug>/rayfin/workspace-name`. If that file is missing, require the name. A successful (non-dry-run, non-status) up writes that file. `@vpaa/admin` is not a Fabric deployable.
 
 Keep `rayfin/.deployments.json` (gitignored). It binds `fabricItemId` + `hostingUrl`. Deleting it can move the host. `rayfin up` rewrites `rayfin.yml` allowed hosts. After auth or `assetAccess` changes, run a full `pnpm up-app <slug>` — not `up staticapp deploy` or `up functions deploy` alone, which skip remote auth migration.
 

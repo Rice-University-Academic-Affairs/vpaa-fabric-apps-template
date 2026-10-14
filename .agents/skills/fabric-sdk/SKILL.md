@@ -10,7 +10,7 @@ description: >
 
 VPAA apps should query through `@vpaa/semantic` (`getFabricClient`, `readSemanticModelTable`, `querySemanticModel`) after `@vpaa/auth` `loadAppAuth`. Do not copy a second bootstrapAuth. The notes below are the underlying SDK contract.
 
-Runtime DAX uses the signed-in Fabric portal user's item permission, including RLS. Users need access to the semantic model item, not only the Fabric app. `readSemanticModelTable` returns Arquero (`result.table.objects()`). `querySemanticModel` returns `result.table.columns` / `result.table.rows` — never call `.objects()` on it. Rayfin 1.36.1 fixes Variant measure decode (`Cannot read properties of undefined (reading '0')`). Optional alternative: a `fabric-semanticmodel` connector from a Rayfin Function (`auth.type: delegated`, `operations: [{ name: executeQuery }]`).
+Runtime DAX uses the signed-in Fabric portal user's item permission, including RLS. Users need access to the semantic model item, not only the Fabric app. App pages call `readSemanticModelTable` from `$lib/semantic.js`; it returns row objects and `[]` on failure. `querySemanticModel` returns `result.table.columns` / `result.table.rows` — never call `.objects()` on it. Rayfin 1.36.1 fixes Variant measure decode (`Cannot read properties of undefined (reading '0')`). Optional alternative: a `fabric-semanticmodel` connector from a Rayfin Function (`auth.type: delegated`, `operations: [{ name: executeQuery }]`).
 
 ## Overview
 

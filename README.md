@@ -1,128 +1,173 @@
 # VPAA Fabric Apps Template
 
-A pnpm workspace for Microsoft Fabric apps. Shared platform code lives in `packages/`. Each app you create lives in `apps/<slug>` and is a first-class workspace app: include it in install, test, smoke, e2e, and check. Do not gitignore an app slug, negate it in `pnpm-workspace.yaml`, or skip it to make the suite pass.
 
-This clone starts with an empty `apps/` directory. After `pnpm install`, create one with `pnpm new-app <slug>`.
+## Set up once
 
-## First run
+Install nvm, then Node 24:
 
-You need **Node.js 24+**. Then, from the repo root:
+```sh
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.5/install.sh | bash
+nvm install 24
+```
+
+Open a terminal in this folder and run:
 
 ```sh
 corepack enable
 corepack prepare pnpm@10.34.5 --activate
 pnpm install
+```
+
+## Create your app
+
+Pick a short name with dashes, like `my-app`, and use that same name in every command below. This makes the folder `apps/my-app`. It starts as a page with a title and no data.
+
+```sh
 pnpm new-app my-app
-pnpm --filter @vpaa/my-app dev
+pnpm start-app my-app
 ```
 
-That last command starts the app at [http://localhost:5173](http://localhost:5173). It runs in admin test mode, so you do not need a Fabric login to click around locally.
+That last command starts the app on your computer. Open [http://localhost:5173](http://localhost:5173). You should see the empty app.
 
-`pnpm --filter` is how this repo talks to one workspace package. The package name is `@vpaa/<slug>` — same slug you passed to `new-app`.
+## Give your app data
 
-`pnpm dev` from the root only **lists** apps and exits. It does not start a server.
+The app can read data that already lives in Fabric, keep its own data, or both. The page will be empty on your computer. Real rows appear after you publish and open the app in Fabric.
 
-## Create an app
+### Read from a Fabric semantic model
 
-`<slug>` is kebab-case, like `faculty-activity` or `my-app`. It becomes the folder `apps/<slug>` and the package `@vpaa/<slug>`.
+Use this when the numbers already live in a Power BI / Fabric model. Copy the model's address from the Fabric portal (open the model, then copy the URL). The app reads that model with the permissions of whoever opens it.
 
 ```sh
-pnpm new-app <slug>
-pnpm new-app <slug> --semantic
-pnpm new-app <slug> --semantic --from-url "<Fabric URL>"
-pnpm new-app <slug> --blank
+pnpm add-semantic-model my-app "https://app.fabric.microsoft.com/..."
 ```
 
-- Default: Rayfin SQL / GraphQL app, copied from `templates/rayfin-app`, with AppShell on every page.
-- `--semantic`: no Rayfin SQL; wires `@vpaa/semantic` for DAX against a Fabric semantic model.
-- `--from-url`: same as `--semantic`, and writes `fabric.yaml` from the semantic model’s Fabric portal URL. No Azure login.
-- `--blank`: product pages omit AppShell; `/admin` still uses it.
+Then show those rows on the home page. Create `apps/my-app/src/routes/+page.ts`. Put your table's name in place of `Sales`.
 
-To attach a semantic model to an app that already exists:
+```ts
+import { readSemanticModelTable } from "$lib/semantic.js";
+
+export const load = async () => {
+	const rows = await readSemanticModelTable("Sales");
+	return { rows };
+};
+```
+
+`rows` is a list of records. Each record's keys are the column names from that table. Replace `apps/my-app/src/routes/+page.svelte` with a table that prints the columns you care about. This example uses `Name` and `Amount` — change those to columns from your model.
+
+```svelte
+<script lang="ts">
+	let { data } = $props();
+</script>
+
+<table>
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Amount</th>
+		</tr>
+	</thead>
+	<tbody>
+		{#each data.rows as row (row.Name)}
+			<tr>
+				<td>{row.Name}</td>
+				<td>{row.Amount}</td>
+			</tr>
+		{/each}
+	</tbody>
+</table>
+```
+
+### Create a Fabric SQL database
+
+The following command tells Fabric that your application needs a SQL database. After you publish your app to Fabric (details below), Fabric will create the database. 
 
 ```sh
-pnpm register-semantic-model --from-url "<url>" --app apps/<slug>
+pnpm add-sql-database my-app
 ```
 
-## Layout
+The rest of this section provides an example of creating a **Note** table with two required fields, `id` and `title`. 
 
-| Path | What it is |
-| --- | --- |
-| `apps/` | Fabric apps you create with `pnpm new-app` |
-| `templates/rayfin-app` | Files copied into each new app |
-| `packages/admin` (`@vpaa/admin`) | Shared Svelte UI, admin screens, AI chat, and a local fixture host |
-| `packages/data` (`@vpaa/data`) | Admin data access and query helpers |
-| `packages/auth` (`@vpaa/auth`) | Fabric / Rayfin auth and membership |
-| `packages/semantic` (`@vpaa/semantic`) | DAX queries against a registered semantic model |
-| `packages/types` (`@vpaa/types`) | Shared TypeScript types |
-| `packages/config` (`@vpaa/config`) | Shared TypeScript and Vite aliases |
+For each table, you need to create a **table file** to describe its columns. One file per table, under `apps/my-app/rayfin/data/domain/`. `id` is a required field. For our example **Note** table, we'll add this table file: `apps/my-app/rayfin/data/domain/Note.ts`:
 
-New product work starts in the app that needs it. Move it into a shared package after a second app needs it, or when it is clearly platform (design system, ORM foundation, authentication).
+```ts
+import { authenticated, entity, text, uuid } from "@microsoft/rayfin-core";
 
-Admin data plane lives in `@vpaa/data`; identity and membership in `@vpaa/auth`; admin UI in `@vpaa/admin`. The `@vpaa/admin` host (`src/routes`, `rayfin/`) holds only what is needed to boot and drive that UI in a browser. It is not a Fabric deployable. Run it with `pnpm --filter @vpaa/admin dev`.
+@entity()
+@authenticated("*")
+export class Note {
+	@uuid()
+	id!: string;
 
-## Test and check
-
-Default verify is **unit**, then **smoke**. Do not run full Playwright unless you mean to.
-
-```sh
-pnpm test
-pnpm test:smoke
-pnpm check
-pnpm check:deps
-pnpm knip
-```
-
-| Command | What it does |
-| --- | --- |
-| `pnpm test` | Unit tests only |
-| `pnpm test:smoke` | `@vpaa/admin` once, then each app under `apps/` one after another (they share Vite 5173) |
-| `pnpm test:e2e` | Full Playwright, also sequential. `@vpaa/admin` covers platform admin and portal once; product apps run only their own specs |
-| `pnpm check` | Typecheck every package |
-| `pnpm check:deps` | Enforces the package import DAG |
-| `pnpm knip` | Unused exports / deps |
-
-One app:
-
-```sh
-pnpm --filter @vpaa/<slug> test
-pnpm --filter @vpaa/<slug> test:smoke
-```
-
-## Publish to Fabric
-
-Run these from the **repo root**. Never `npx rayfin`. Never run `rayfin up` from the repository root. See `.cursor/skills/vpaa-up-app`.
-
-```sh
-pnpm up-app <slug> --dry-run
-pnpm up-app <slug> --workspace "<Fabric workspace name>"
-pnpm up-app <slug>
-```
-
-`--workspace` is the name shown in the Fabric portal, not a GUID and not `.deployments.json` `active`. First publish needs `--workspace`. Later publishes reuse `apps/<slug>/rayfin/workspace-name`. Run `--dry-run` before a live deploy.
-
-Static hosting is `apps/<slug>/rayfin/rayfin.yml`: `buildCommand` is `npm run build:fabric`, `folder` is `build`, `assetAccess` is `protected`, and `services.auth.fabric.externalEntraExchange` is `true`. `@microsoft/rayfin-*` packages are catalog-pinned to 1.36.2. Backend Functions stay off until `pnpm new-app <slug> --functions`.
-
-The owner admin email belongs in `apps/<slug>/rayfin/.env` as `RAYFIN_PUBLIC_OWNER_ADMIN_EMAIL`. `rayfin env` copies it to `.env.local` as `VITE_RAYFIN_OWNER_ADMIN_EMAIL`. Do not put it only in `.env.local`; that file is regenerated.
-
-Skip `rayfin login` unless `up-app` fails as logged-out. Do not commit secrets. Run `pnpm up-app` from the OS that installed `node_modules`.
-
-## Shared packages
-
-`pnpm new-app` already adds these. If you add them by hand:
-
-```json
-{
-  "dependencies": {
-    "@vpaa/admin": "workspace:*",
-    "@vpaa/data": "workspace:*",
-    "@vpaa/auth": "workspace:*",
-    "@vpaa/types": "workspace:*",
-    "@vpaa/config": "workspace:*"
-  }
+	@text({ max: 200 })
+	title!: string;
 }
 ```
 
-Import from package entry points (`@vpaa/admin`, `@vpaa/data`, `@vpaa/auth`, `@vpaa/types`), not package internals.
+Those `@uuid()` and `@text()` marks are column types from Rayfin. Other types and options are in the [Rayfin modeling docs](https://rayfin.ai/docs/data/modeling) (`@microsoft/rayfin-core`).
 
-Semantic-model queries are optional: add `@vpaa/semantic` (`workspace:*`) and follow `packages/semantic/AGENTS.md` or the `vpaa-register-semantic-model` skill.
+With the **Note** table described, we can now set up our home page to fetch and display rows from the Note table. 
+Following Svelte conventions, we'll create a new file, `apps/my-app/src/routes/+page.ts`, to fetch the data for our home page:
+
+```ts
+import { getRayfinClient } from "$lib/rayfin/client.js";
+
+export const load = async () => {
+	try {
+		const notes = await getRayfinClient().data.Note.select(["id", "title"]).execute();
+		return { notes };
+	} catch {
+		return { notes: [] };
+	}
+};
+```
+
+Then we'll create `apps/my-app/src/routes/+page.svelte` to receive and display that data.
+
+```svelte
+<script lang="ts">
+	let { data } = $props();
+</script>
+
+<table>
+	<thead>
+		<tr>
+			<th>Title</th>
+		</tr>
+	</thead>
+	<tbody>
+		{#each data.notes as note (note.id)}
+			<tr>
+				<td>{note.title}</td>
+			</tr>
+		{/each}
+	</tbody>
+</table>
+```
+
+## The Admin page
+
+Every app using this template includes an **Admin** page built by VPAA. After you publish an app that has a SQL database, this page lists your tables so you can browse, add, and edit rows with a simple UI. You can change the admin page to suit your needs; it lives in `apps/my-app/src/routes/admin/`.
+
+This template automatically creates an **AdminUser** table to support that page. That table is the list of people who can open Admin — email address, when they were added, and whether they can add other admins. You do not write this table; it is already in the app. Your own tables (like Note) show up next to it after you publish.
+
+The **Admin** page requires an application owner -- an original admin who can create other admins. You should make yourself the application owner. In `apps/my-app/rayfin/.env`, set the `RAYFIN_PUBLIC_OWNER_ADMIN_EMAIL` variable to your NetID email address:
+
+```
+RAYFIN_PUBLIC_OWNER_ADMIN_EMAIL=your-netid@rice.edu
+```
+
+After you publish and open the app in Fabric, you get an **Admin** link in the navbar. From there you can manage the tables and add other Rice accounts as admins. Everyone else can still open the app; they just do not see Admin until someone on the list adds them.
+
+## Publish to Fabric
+
+This puts the app in a Fabric workspace you already have. Publish into the workspace whose name you see in the Fabric portal:
+
+```sh
+pnpm up-app my-app "Fabric workspace name"
+```
+
+The next time you publish this app, you can omit the workspace name. The first publish writes it to `apps/my-app/rayfin/workspace-name`.
+
+```sh
+pnpm up-app my-app
+```

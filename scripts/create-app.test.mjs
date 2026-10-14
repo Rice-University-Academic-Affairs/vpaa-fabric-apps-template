@@ -7,14 +7,12 @@ import assert from "node:assert/strict";
 import {
 	applyBlankScaffold,
 	applyFunctionsScaffold,
-	applySemanticScaffold,
 	assertSlug,
 	copyTemplate,
 	displayNameFromSlug,
 	parseArgs,
 	substitutions
 } from "./create-app.mjs";
-import { writeFabricYaml, parseFabricPortalUrl } from "./register-semantic-model.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const requiredScripts = [
@@ -30,8 +28,8 @@ const requiredScripts = [
 ];
 const agentsHeadings = ["## Dev", "## Test (unit)", "## Smoke", "## E2E", "## Check", "## Generate"];
 const semanticQueryDocs = [
-	path.join(repoRoot, ".cursor", "skills", "vpaa-create-app", "SKILL.md"),
-	path.join(repoRoot, ".cursor", "skills", "vpaa-register-semantic-model", "SKILL.md"),
+	path.join(repoRoot, ".agents", "skills", "vpaa-create-app", "SKILL.md"),
+	path.join(repoRoot, ".agents", "skills", "vpaa-register-semantic-model", "SKILL.md"),
 	path.join(repoRoot, "packages", "semantic", "AGENTS.md")
 ];
 
@@ -74,92 +72,41 @@ test("parseArgs reads slug and --fabric", () => {
 	assert.deepEqual(parseArgs(["faculty-activity"]), {
 		slug: "faculty-activity",
 		fabric: false,
-		semantic: false,
 		functions: false,
-		blank: false,
-		fromUrl: null,
-		alias: "default"
+		blank: false
 	});
 	assert.deepEqual(parseArgs(["faculty-activity", "--fabric"]), {
 		slug: "faculty-activity",
 		fabric: true,
-		semantic: false,
 		functions: false,
-		blank: false,
-		fromUrl: null,
-		alias: "default"
+		blank: false
 	});
 	assert.deepEqual(parseArgs(["--fabric", "faculty-activity"]), {
 		slug: "faculty-activity",
 		fabric: true,
-		semantic: false,
 		functions: false,
-		blank: false,
-		fromUrl: null,
-		alias: "default"
+		blank: false
 	});
 });
 
-test("parseArgs reads --semantic", () => {
-	assert.deepEqual(parseArgs(["faculty-activity", "--semantic"]), {
-		slug: "faculty-activity",
-		fabric: false,
-		semantic: true,
-		functions: false,
-		blank: false,
-		fromUrl: null,
-		alias: "default"
-	});
-	assert.deepEqual(parseArgs(["--semantic", "faculty-activity"]), {
-		slug: "faculty-activity",
-		fabric: false,
-		semantic: true,
-		functions: false,
-		blank: false,
-		fromUrl: null,
-		alias: "default"
-	});
+test("parseArgs reads --functions", () => {
 	assert.deepEqual(parseArgs(["faculty-activity", "--functions"]), {
 		slug: "faculty-activity",
 		fabric: false,
-		semantic: false,
 		functions: true,
-		blank: false,
-		fromUrl: null,
-		alias: "default"
+		blank: false
 	});
 });
 
-test("parseArgs reads --from-url and implies --semantic", () => {
-	const url =
-		"https://app.fabric.microsoft.com/groups/57f51a03-ccf4-4f17-aa88-174bd878a1bb/modeling/aea86285-a1a3-4b9d-8017-b31ff2379375";
-	assert.deepEqual(parseArgs(["faculty-activity", "--from-url", url]), {
-		slug: "faculty-activity",
-		fabric: false,
-		semantic: true,
-		functions: false,
-		blank: false,
-		fromUrl: url,
-		alias: "default"
-	});
-	assert.deepEqual(parseArgs(["faculty-activity", "--semantic", "--from-url", url, "--alias", "sales"]), {
-		slug: "faculty-activity",
-		fabric: false,
-		semantic: true,
-		functions: false,
-		blank: false,
-		fromUrl: url,
-		alias: "sales"
-	});
-});
-
-test("parseArgs rejects --from-url without a value", () => {
-	assert.throws(() => parseArgs(["faculty-activity", "--from-url"]), /from-url/);
-});
-
-test("parseArgs rejects --fabric and --semantic together", () => {
-	assert.throws(() => parseArgs(["faculty-activity", "--fabric", "--semantic"]), /mutually exclusive/);
-	assert.throws(() => parseArgs(["--semantic", "--fabric", "faculty-activity"]), /mutually exclusive/);
+test("parseArgs rejects semantic attach flags", () => {
+	assert.throws(
+		() => parseArgs(["faculty-activity", "--semantic"]),
+		/add-semantic-model/
+	);
+	assert.throws(
+		() => parseArgs(["faculty-activity", "--from-url", "https://example.com"]),
+		/add-semantic-model/
+	);
 });
 
 test("copyTemplate substitutes tokens without writing into apps/", async () => {
@@ -184,7 +131,8 @@ test("copyTemplate substitutes tokens without writing into apps/", async () => {
 		const yml = await readFile(path.join(dest, "rayfin", "rayfin.yml"), "utf8");
 		assert.match(yml, /buildCommand: npm run build:fabric/);
 		assert.match(yml, /id: faculty-activity/);
-		assert.match(yml, /dialect:\s*mssql/);
+		assert.match(yml, /data:\s*\r?\n\s+enabled:\s*false/);
+		assert.doesNotMatch(yml, /dialect:\s*mssql/);
 		assert.match(yml, /assetAccess:\s*protected/);
 		assert.match(yml, /externalEntraExchange:\s*true/);
 		assert.match(yml, /functions:\s*\r?\n\s+enabled:\s*false/);
@@ -194,6 +142,9 @@ test("copyTemplate substitutes tokens without writing into apps/", async () => {
 		assert.match(smokeSpec, /Admin Users/);
 		assert.doesNotMatch(smokeSpec, /Products/);
 		assert.doesNotMatch(smokeSpec, /Product 001/);
+		const schema = await readFile(path.join(dest, "rayfin", "data", "schema.ts"), "utf8");
+		assert.match(schema, /domain\/entities\.generated/);
+		assert.doesNotMatch(schema, /Note/);
 		const schemaTest = await readFile(path.join(dest, "src", "lib", "schema.test.ts"), "utf8");
 		assert.match(schemaTest, /adminResources/);
 		assert.doesNotMatch(schemaTest, /rayfin\/data/);
@@ -225,11 +176,8 @@ test("parseArgs reads --blank", () => {
 	assert.deepEqual(parseArgs(["faculty-activity", "--blank"]), {
 		slug: "faculty-activity",
 		fabric: false,
-		semantic: false,
 		functions: false,
-		blank: true,
-		fromUrl: null,
-		alias: "default"
+		blank: true
 	});
 });
 
@@ -269,35 +217,6 @@ test("applyFunctionsScaffold enables application-auth functions", async () => {
 	}
 });
 
-test("applySemanticScaffold disables SQL and wires semantic generate", async () => {
-	const tmp = await mkdtemp(path.join(os.tmpdir(), "vpaa-new-app-"));
-	try {
-		const dest = path.join(tmp, "app");
-		await copyTemplate(dest, substitutions("faculty-activity"));
-		await applySemanticScaffold(dest);
-		const yml = await readFile(path.join(dest, "rayfin", "rayfin.yml"), "utf8");
-		assert.match(yml, /data:\s*\r?\n\s+enabled:\s*false/);
-		assert.doesNotMatch(yml, /dialect:\s*mssql/);
-		const pkg = JSON.parse(await readFile(path.join(dest, "package.json"), "utf8"));
-		assert.equal(pkg.dependencies["@vpaa/semantic"], "workspace:*");
-		assert.equal(pkg.dependencies["@microsoft/fabric-app-data"], "catalog:");
-		assert.equal(pkg.dependencies["@microsoft/fabric-app-data-embed-client"], "catalog:");
-		assert.equal(pkg.dependencies["@microsoft/fabric-app-data-proxy"], "catalog:");
-		assert.equal(pkg.dependencies.arquero, "catalog:");
-		assert.equal(pkg.devDependencies["@microsoft/fabric-app-data-cli"], "catalog:");
-		assert.equal(pkg.devDependencies["@microsoft/fabric-app-data-cli-proxy"], "catalog:");
-		assert.match(pkg.scripts["build:fabric"], /scripts\/fabric-app-data\.mjs/);
-		assert.match(pkg.scripts["build:fabric"], /src\/fabric\.generated\.ts/);
-		const files = await walkFiles(dest);
-		for (const file of files) {
-			if (!/\.(ts|svelte|md)$/.test(file)) continue;
-			assertNoObjectsOnQuerySemanticModel(await readFile(file, "utf8"), file);
-		}
-	} finally {
-		await rm(tmp, { recursive: true, force: true });
-	}
-});
-
 test("semantic query docs do not call objects() on querySemanticModel results", async () => {
 	for (const file of semanticQueryDocs) {
 		const text = await readFile(file, "utf8");
@@ -306,22 +225,5 @@ test("semantic query docs do not call objects() on querySemanticModel results", 
 		assert.match(text, /result\.table\.rows/);
 		assert.match(text, /do not call `?\.objects\(\)`|Never call `?\.objects\(\)`/i);
 		assertNoObjectsOnQuerySemanticModel(text, file);
-	}
-});
-
-test("semantic scaffold with a portal URL writes fabric.yaml", async () => {
-	const tmp = await mkdtemp(path.join(os.tmpdir(), "vpaa-new-app-"));
-	const url =
-		"https://app.fabric.microsoft.com/groups/57f51a03-ccf4-4f17-aa88-174bd878a1bb/modeling/aea86285-a1a3-4b9d-8017-b31ff2379375";
-	try {
-		const dest = path.join(tmp, "app");
-		await copyTemplate(dest, substitutions("faculty-activity"));
-		await applySemanticScaffold(dest);
-		await writeFabricYaml(dest, parseFabricPortalUrl(url));
-		const yaml = await readFile(path.join(dest, "fabric.yaml"), "utf8");
-		assert.match(yaml, /workspaceId:\s*["']?57f51a03-ccf4-4f17-aa88-174bd878a1bb["']?/);
-		assert.match(yaml, /itemId:\s*["']?aea86285-a1a3-4b9d-8017-b31ff2379375["']?/);
-	} finally {
-		await rm(tmp, { recursive: true, force: true });
 	}
 });

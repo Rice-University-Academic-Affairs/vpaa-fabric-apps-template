@@ -1,3 +1,0 @@
-{
-	"install": "corepack enable\ncorepack prepare pnpm@10.34.5 --activate\npnpm install\npnpm exec playwright install --with-deps chromium\npnpm -r --if-present admin:generate"
-}

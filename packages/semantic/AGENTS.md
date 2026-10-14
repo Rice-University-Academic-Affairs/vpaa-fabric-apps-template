@@ -2,7 +2,7 @@
 
 Fabric semantic-model DAX queries via the embed proxy. Not a Fabric deployable.
 
-Use this when an app has no Rayfin SQL backend and needs to read a Power BI / Fabric semantic model. Auth still comes from `@vpaa/auth` (`loadAppAuth`). This package never bootstraps Fabric login.
+Use this when an app needs to read a Power BI / Fabric semantic model. Auth still comes from `@vpaa/auth` (`loadAppAuth`). This package never bootstraps Fabric login.
 
 ## When to use this vs `@vpaa/data`
 
@@ -46,42 +46,34 @@ pnpm check:deps
 
 ## Generate
 
-From the app that owns `fabric.yaml`:
+`pnpm add-semantic-model` writes `fabric.yaml` and `src/fabric.generated.ts`, and hooks generate into `predev` and `build:fabric`. From the app that already owns `fabric.yaml`:
 
 ```sh
-node scripts/fabric-app-data.mjs generate -o src/fabric.generated.ts
+pnpm --filter @vpaa/<slug> fabric:generate
 ```
 
 ## Register a semantic model
 
-From the repo root after the app exists. No Azure or Rayfin login:
+From the repo root after the app exists. No Azure or Rayfin login. Leaves a SQL database on the app if one is already enabled.
 
 ```sh
-pnpm register-semantic-model --from-url "<Fabric URL of the semantic model>" --app apps/<slug>
+pnpm add-semantic-model <slug> "<Fabric URL of the semantic model>"
 ```
 
-Optional `--alias <name>` (default `default`). That writes `fabric.yaml` and `src/fabric.generated.ts` from the URL.
+Optional `--alias <name>` (default `default`). That writes `fabric.yaml` and `src/fabric.generated.ts` from the URL, adds `@vpaa/semantic` plus cataloged `@microsoft/fabric-app-data*` / `arquero` dependencies, and writes `src/lib/semantic.ts`.
 
-New apps can do the same at scaffold: `pnpm new-app <slug> --semantic --from-url "<url>"`.
-
-Add `@vpaa/semantic` (`workspace:*`) and cataloged `@microsoft/fabric-app-data*` / `arquero` dependencies to that app. Keep `fabric.yaml` in the app. Gitignore `src/fabric.generated.ts`. Run generate before `build:fabric`.
+Keep `fabric.yaml` in the app. Gitignore `src/fabric.generated.ts`. Pages import `$lib/semantic.js`, not the generated file. `fabric.generated.ts` is gitignored IDs regenerated from `fabric.yaml` on `predev` / `build:fabric`; the helper loads it so callers do not.
 
 Use the `vpaa-register-semantic-model` skill to walk this for a client app.
 
 ## Query
 
 ```ts
-import { fabricConfig } from "./fabric.generated.js";
-import { getFabricClient, readSemanticModelTable } from "@vpaa/semantic";
+import { readSemanticModelTable } from "$lib/semantic.js";
 
-getFabricClient(fabricConfig);
-const result = await readSemanticModelTable("default", "Sales");
-if (result.status === "error") {
-	return { preview: [] };
-}
-const rows = result.table.objects();
+const rows = await readSemanticModelTable("Sales");
 ```
 
-`readSemanticModelTable` runs `EVALUATE <table>` and returns an Arquero `ColumnTable` on success (`result.table.objects()`). Pass the plain table name. Queries never throw — check `result.status`. Custom DAX: `querySemanticModel(alias, dax)` returns a raw Fabric `QueryTable` (`result.table.columns`, `result.table.rows`). Do not call `.objects()` on that table.
+`readSemanticModelTable` runs `EVALUATE <table>` and returns row objects. Pass the plain table name. A missing client, a failed query, or a missing generated config returns `[]`. Custom DAX: `querySemanticModel(alias, dax)` returns a raw Fabric `QueryTable` (`result.table.columns`, `result.table.rows`). Do not call `.objects()` on that table.
 
-DAX authoring, schema discovery, CLI, and SDK details live in `.agents/skills/`.
+DAX authoring, schema discovery, CLI, and SDK details live in `.agents/skills/` at the repository root.

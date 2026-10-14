@@ -1,13 +1,20 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { schema } from "../rayfin/data/schema.js";
 import { extractResources, formatResourcesModule } from "@vpaa/data";
+import { syncDomainEntities } from "../../../scripts/sync-domain-schema.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outFile = path.join(root, "src/lib/admin/generated/resources.ts");
 
+async function loadSchema() {
+	await syncDomainEntities(root);
+	const { schema } = await import("../rayfin/data/schema.js");
+	return schema;
+}
+
 export async function generateAdminResources(): Promise<string> {
+	const schema = await loadSchema();
 	const resources = extractResources({ entities: schema });
 	const source = formatResourcesModule(resources);
 	await mkdir(path.dirname(outFile), { recursive: true });
@@ -17,6 +24,7 @@ export async function generateAdminResources(): Promise<string> {
 
 export async function checkAdminResources(options?: { outFile?: string }): Promise<void> {
 	const target = options?.outFile ?? outFile;
+	const schema = await loadSchema();
 	const resources = extractResources({ entities: schema });
 	const expected = formatResourcesModule(resources);
 	let actual = "";

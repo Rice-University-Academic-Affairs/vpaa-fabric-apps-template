@@ -98,7 +98,7 @@ function depEntries(pkg) {
 test("root scripts keep the unit/smoke/e2e/check contract", async () => {
 	const pkg = await readJson("package.json");
 	assert.equal(pkg.scripts.dev, "node scripts/list-apps.mjs");
-	assert.equal(pkg.scripts.test, "pnpm -r --if-present test && node --test scripts/create-app.test.mjs scripts/register-semantic-model.test.mjs scripts/up-app.test.mjs scripts/workspace-contract.test.mjs");
+	assert.equal(pkg.scripts.test, "pnpm -r --if-present test && node --test scripts/create-app.test.mjs scripts/add-semantic-model.test.mjs scripts/add-sql-database.test.mjs scripts/sync-domain-schema.test.mjs scripts/start-app.test.mjs scripts/up-app.test.mjs scripts/workspace-contract.test.mjs");
 	assert.equal(
 		pkg.scripts["test:smoke"],
 		"pnpm --filter @vpaa/admin test:smoke && pnpm --sequential --filter \"./apps/*\" test:smoke"
@@ -111,7 +111,9 @@ test("root scripts keep the unit/smoke/e2e/check contract", async () => {
 	assert.match(pkg.scripts["check:deps"], /depcruise/);
 	assert.match(pkg.scripts.knip, /knip/);
 	assert.equal(pkg.scripts["new-app"], "node scripts/create-app.mjs");
-	assert.equal(pkg.scripts["register-semantic-model"], "node scripts/register-semantic-model.mjs");
+	assert.equal(pkg.scripts["start-app"], "node scripts/start-app.mjs");
+	assert.equal(pkg.scripts["add-sql-database"], "node scripts/add-sql-database.mjs");
+	assert.equal(pkg.scripts["add-semantic-model"], "node scripts/add-semantic-model.mjs");
 	assert.equal(pkg.scripts["up-app"], "node scripts/up-app.mjs");
 });
 

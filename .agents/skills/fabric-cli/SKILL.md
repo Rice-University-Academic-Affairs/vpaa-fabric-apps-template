@@ -14,10 +14,10 @@ Run these commands from `apps/<slug>` (the directory with `fabric.yaml`). Use `n
 To write semantic-model workspace and item IDs from a portal URL, do not use `init`/`add`. From the repo root, with no Azure login:
 
 ```sh
-pnpm register-semantic-model --from-url "<Fabric URL of the semantic model>" --app apps/<slug>
+pnpm add-semantic-model <slug> "<Fabric URL of the semantic model>"
 ```
 
-That writes `fabric.yaml` and `src/fabric.generated.ts`. Use `generate` from this skill only when regenerating TypeScript from an existing yaml, and `query` only if Azure CLI is available (this repo does not require `az login`).
+That writes `fabric.yaml`, `src/fabric.generated.ts`, and `src/lib/semantic.ts`. Pages import `$lib/semantic.js`. Use `generate` from this skill only when regenerating TypeScript from an existing yaml, and `query` only if Azure CLI is available (this repo does not require `az login`).
 
 ## Overview
 
@@ -38,10 +38,9 @@ node scripts/fabric-app-data.mjs generate -o src/fabric.generated.ts
 
 Then in your app:
 ```typescript
-import { fabricConfig } from "./fabric.generated.js";
-import { getFabricClient } from "@vpaa/semantic";
+import { readSemanticModelTable } from "$lib/semantic.js";
 
-getFabricClient(fabricConfig);
+const rows = await readSemanticModelTable("Sales");
 ```
 
 ## Config discovery

@@ -5,9 +5,9 @@ import { spawn } from "node:child_process";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const USAGE =
-	'Usage: pnpm up-app <slug> [--workspace "<name>"] [--dry-run] [--status] [--item-name <name>] [--capacity-id <id>] [--exclude-services <name>]';
+	'Usage: pnpm up-app <slug> ["<workspace name>"] [--dry-run] [--status] [--item-name <name>] [--capacity-id <id>] [--exclude-services <name>]';
 const WORKSPACE_NAME_FILE = "workspace-name";
-const VALUE_FLAGS = new Set(["workspace", "item-name", "capacity-id", "exclude-services"]);
+const VALUE_FLAGS = new Set(["item-name", "capacity-id", "exclude-services"]);
 const BOOL_FLAGS = new Set(["dry-run", "status"]);
 
 export function parseArgs(argv) {
@@ -34,12 +34,12 @@ export function parseArgs(argv) {
 		}
 		positionals.push(arg);
 	}
-	if (positionals.length !== 1) {
+	if (positionals.length < 1 || positionals.length > 2) {
 		throw new Error(USAGE);
 	}
 	return {
 		slug: normalizeSlug(positionals[0]),
-		workspace: values.workspace ?? null,
+		workspace: positionals[1] ?? null,
 		dryRun: flags.has("dry-run"),
 		status: flags.has("status"),
 		itemName: values["item-name"] ?? null,
@@ -135,7 +135,7 @@ export async function upApp(options) {
 	const flagged = typeof options.workspace === "string" ? options.workspace.trim() : "";
 	const workspace = flagged || (await workspaceFromNameFile(appDir));
 	if (!workspace) {
-		throw new Error(`First deploy of ${slug} needs --workspace "<Fabric workspace name>"`);
+		throw new Error(`First deploy of ${slug} needs a Fabric workspace name: pnpm up-app ${slug} "<name>"`);
 	}
 	const extras = {
 		dryRun: Boolean(options.dryRun),
